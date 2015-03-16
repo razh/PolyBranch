@@ -37,13 +37,6 @@ $(document).ready(function(){
 	});
 });
 
-
-
-// function start(){
-// 	if(pjs!=null) {
-//     	pjs.pause();
-//     }
-// }
 function processingIsReady(){
 	$("#loading").fadeOut(300);
 }
@@ -59,7 +52,7 @@ function jsStartGame(fromProcessing){
 		}
 		$("#hud").fadeIn(300);
 		$("#main-menu").fadeOut(300,function(){
-			
+
 		});
 	});
 }
