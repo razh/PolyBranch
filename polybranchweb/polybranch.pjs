@@ -803,6 +803,21 @@ const scores = [
   48000
 ];
 
+const branches = [
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  18
+];
+
 
 // Tree has been moved inside layer as an internal class.
 class Game {
@@ -899,52 +914,6 @@ class Game {
   }
 
   checkLevel() {
-    const { score, level } = this;
-
-    if ( score > scores[11] && level < 12 ) {
-      this.level = 12;
-      this.numBranches = 16;
-      this.levelUp = 0;
-    } else if ( score > scores[10] && level < 11 ) {
-      this.level = 11;
-      this.numBranches = 16;
-      this.levelUp = 0;
-    } else if ( score > scores[9] && level < 10 ) {
-      this.level = 10;
-      this.numBranches = 15;
-      this.levelUp = 0;
-    } else if ( score > scores[8] && level < 9 ) {
-      this.level = 9;
-      this.numBranches = 14;
-      this.levelUp = 0;
-    } else if ( score > scores[7] && level < 8 ) {
-      this.level = 8;
-      this.numBranches = 13;
-      this.levelUp = 0;
-    } else if ( score > scores[6] && level < 7 ) {
-      this.level = 7;
-      this.numBranches = 12;
-      this.levelUp = 0;
-    } else if ( score > scores[5] && level < 6 ) {
-      this.level = 6;
-      this.numBranches = 11;
-      this.levelUp = 0;
-    } else if ( score > scores[4] && level < 5 ) {
-      this.level = 5;
-      this.numBranches = 10;
-      this.levelUp = 0;
-    } else if ( score > scores[3] && level < 4 ) {
-      this.level = 4;
-      this.numBranches = 9;
-      this.levelUp = 0;
-    } else if ( score > scores[2] && level < 3 ) {
-      this.level = 3;
-      this.numBranches = 8;
-      this.levelUp = 0;
-    } else if ( score > scores[1] && level < 2 ) {
-      this.level = 2;
-      this.numBranches = 7;
-      this.levelUp = 0;
     for ( let i = scores.length - 1; i >= 0; i++ ) {
       if ( this.score > scores[i] && this.level < ( i + 1 ) ) {
         this.level = i + 1;
