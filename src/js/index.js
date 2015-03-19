@@ -1,30 +1,69 @@
-/*global $, pjs*/
+/*global pjs*/
+
+const DURATION      = 300;
+const LONG_DURATION = 1000;
 
 let firstPlaythrough = true;
 let playing = false;
 
-$( '#main-menu #start' ).click( () => {
+const $ = document.querySelector.bind( document );
+
+const $mainMenu        = $( '#main-menu' );
+const $start           = $( '#main-menu #start' );
+const $mainMenuContent = $( '#main-menu .content' );
+
+const $flash     = $( '#flash' );
+const $loading   = $( '#loading' );
+const $arrowKeys = $( '#arrow-keys' );
+
+const $gameOverMenu      = $( '#game-over-menu' );
+const $gameOverContent   = $( '#game-over-menu .content' );
+const $gameOverScore     = $( '#game-over-menu #score' );
+const $gameOverHighScore = $( '#game-over-menu #high-score' );
+const $nextLevel         = $( '#game-over-menu #next-level' );
+const $retry             = $( '#game-over-menu #retry' );
+
+const $hud   = $( '#hud' );
+const $score = $( '#hud #score' );
+const $level = $( '#hud #level span' );
+
+function show( el ) {
+  el.style.display = '';
+  return el;
+}
+
+function hide( el ) {
+  el.style.display = 'none';
+  return el;
+}
+
+function css( el, props ) {
+  Object.keys( props ).forEach( key => el.style.key = props[ key ] );
+  return el;
+}
+
+$start.addEventListener( 'click', () => {
   if( !playing ) {
     jsStartGame( false );
     playing = true;
   }
 });
 
-$( '#game-over-menu #retry' ).click( () => {
+$retry.addEventListener( 'click', () => {
   if( !playing ) {
     jsNewGame();
     playing = true;
   }
 });
 
-$( document ).bind( 'keydown', () => {
+document.addEventListener( 'keydown', () => {
   if ( $( '#arrow-keys:visible' ).length ) {
-    $( '#arrow-keys' ).fadeOut( 300 );
+    $arrowKeys.fadeOut( DURATION );
   }
 });
 
 function processingIsReady() {
-  $( '#loading' ).fadeOut( 300 );
+  $loading.fadeOut( DURATION );
 }
 
 function jsStartGame( fromProcessing ) {
@@ -32,89 +71,78 @@ function jsStartGame( fromProcessing ) {
     pjs.pause();
   }
 
-  $( '#main-menu .content' ).fadeOut( 300, () => {
+  $mainMenuContent.fadeOut( DURATION, () => {
     if ( firstPlaythrough ) {
       firstPlaythrough = false;
-      $( '#arrow-keys' ).fadeIn( 300 );
+      $arrowKeys.fadeIn( DURATION );
     }
 
-    $( '#hud' ).fadeIn( 300 );
-    $( '#main-menu' ).fadeOut( 300 );
+    $hud.fadeIn( DURATION );
+    $mainMenu.fadeOut( DURATION );
   });
 }
 
 function jsNewGame() {
-  pjs.newGame();
+  pjs.reset();
 
-  $( '#hud #score' ).html( '0' );
-  $( '#hud #level span' ).html( '1' );
+  $score.textContent = 0;
+  $level.textContent = 1;
 
-  $( '#game-over-menu .content' )
-    .animate( { opacity: 0 }, 300, () => {
-      $( '#game-over-menu .content' ).hide();
-      $( '#game-over-menu' )
-        .animate( { opacity: 0 }, 300, () => {
-          $('#game-over-menu').hide();
-          $('#hud').fadeIn( 300 );
+  $gameOverContent
+    .animate( { opacity: 0 }, DURATION, () => {
+      hide( $gameOverContent );
+      $gameOverMenu
+        .animate( { opacity: 0 }, DURATION, () => {
+          hide( $gameOverMenu );
+          $hud.fadeIn( DURATION );
           pjs.pause();
         });
     });
 }
 
 function jsUpdateScore( score ) {
-  $( '#hud #score' ).html( score.toLocaleString() );
+  $score.textContent = score.toLocaleString();
 }
 
 function jsIncrementLevel() {
-  $( '#hud #level span' )
-    .html( parseInt( $( '#hud #level span' ).html() ) + 1 );
+  $level.textContent( parseInt( $level.textContent ) + 1 );
 }
 
 function jsGameOver( score ) {
   playing = false;
 
-  $( '#flash' ).show();
+  show( $flash );
+  hide( $hud );
 
-  $( '#hud' ).hide();
-  $( '#flash' )
-    .delay( 1000 )
-    .animate( { opacity: 0 }, 1000, function() {
-      $( this ).hide();
-      $( this ).css( 'opacity', 1 );
+  $flash
+    .delay( LONG_DURATION )
+    .animate( { opacity: 0 }, LONG_DURATION, () => {
+      hide( $flash );
+      css( $flash, { 'opacity': 1 } );
 
-      $( '#game-over-menu #score' )
-        .html(
-          score.toLocaleString() +
-          '<span id="L">L' + $( '#hud #level span' ).html() + '</span>'
-        );
+    $gameOverScore.innerHTML = score.toLocaleString() +
+      '<span id="L">L' + $level.textContent + '</span>';
 
       if( localStorage.highScore === undefined ||
           score > parseInt( localStorage.highScore ) ) {
-        $( '#game-over-menu #high-score' ).html( 'NEW RECORD!' );
+        $gameOverHighScore.textContent = 'NEW RECORD!';
         localStorage.highScore = score;
-        localStorage.highLevel = $( '#hud #level span' ).html();
+        localStorage.highLevel = $level.textContent;
       } else {
-        $( '#game-over-menu #high-score' )
-          .html( 'PERSONAL BEST: ' +
-            parseInt( localStorage.highScore ).toLocaleString() +
-            '<span id="L">L' + localStorage.highLevel + '</span>'
-          );
+        $gameOverHighScore.innerHTML = 'PERSONAL BEST: ' +
+          parseInt( localStorage.highScore ).toLocaleString() +
+          '<span id="L">L' + localStorage.highLevel + '</span>';
       }
 
-      $( '#game-over-menu #next-level span' )
-        .html(
-          (
-            pjs.getNextScore(
-              parseInt( $( '#hud #level span' ).html() )
-            ) + 1000
-          ).toLocaleString()
-        );
+      $nextLevel.textContent = (
+        pjs.getNextScore( parseInt( $level.textContent ) ) + 1000
+      ).toLocaleString();
 
-      $( '#game-over-menu' ).show();
-      $( '#game-over-menu' )
-        .animate( { opacity: 1 }, 300, () => {
-          $( '#game-over-menu .content' ).show();
-          $( '#game-over-menu .content' ).animate( { opacity: 1 }, 300 );
+      show( $gameOverMenu );
+      $gameOverMenu
+        .animate( { opacity: 1 }, DURATION, () => {
+          show( $gameOverContent );
+          $gameOverContent.animate( { opacity: 1 }, DURATION );
         });
     });
 }
