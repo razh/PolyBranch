@@ -7,9 +7,14 @@ import {
   angleTo,
   distanceTo,
   easeInExpo,
-  lerp,
-  PI2
+  lerp
 } from './math';
+
+import {
+  color,
+  circle,
+  drawPolygon
+} from './canvas';
 
 // Processing functions.
 const canvas = document.querySelector( 'canvas' );
@@ -18,67 +23,6 @@ const ctx    = ctx.getContext( '2d' );
 function size( width, height ) {
   canvas.width  = width;
   canvas.height = height;
-}
-
-// HSB values are in the [0, 255] range.
-function hsbaToHsla( h = 0, s = 0, b = 0, a = 1 ) {
-  if ( !b ) {
-    return 'hsla(0, 0%, 0%, ' + a + ')';
-  }
-
-  s /= 255;
-  b /= 255;
-
-  const l = b / 2 * ( 2 - s );
-  s = ( b / s ) / ( l < 0.5 ? l * 2 : 1 - l * 2 );
-  return `hsla(${ h }, ${ 255 * s }%, ${ 255 * l }%, ${ a / 255 })`;
-}
-
-function variadicHsbaToHsla( h, s, b, a ) {
-  if ( arguments.length === 1 ) {
-    return hsbaToHsla( h, h, h );
-  } else if ( arguments.length === 2 ) {
-    // s is alpha.
-    return hsbaToHsla( h, h, h, s );
-  } else if ( arguments.length === 3 ) {
-    return hsbaToHsla( h, s, b );
-  }
-
-  return hsbaToHsla( h, s, b, a );
-}
-
-const fill = ( ...args ) => ctx.fillStyle = variadicHsbaToHsla( ...args );
-
-function noFill() {
-  ctx.fillStyle = 'transparent';
-}
-
-const stroke = ( ...args ) => ctx.strokeStyle = variadicHsbaToHsla( ...args );
-
-function noStroke() {
-  ctx.strokeStyle = 'transparent';
-}
-
-function strokeWeight( weight ) {
-  ctx.lineWidth = weight;
-}
-
-function triangle( x0, y0, x1, y1, x2, y2 ) {
-  ctx.beginPath();
-  ctx.moveTo( x0, y0 );
-  ctx.lineTo( x1, y1 );
-  ctx.lineTo( x2, y2 );
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-}
-
-function circle( x, y, r ) {
-  ctx.beginPath();
-  ctx.arc( x, y, r, 0, PI2 );
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
 }
 
 const keys = [];
@@ -228,25 +172,6 @@ function getNextScore( index ) {
     0;
 }
 
-function drawPolygon( cx, cy, r, numSides, weight, color ) {
-  const angle = PI2 / numSides;
-  noFill();
-
-  ctx.strokeStyle = color;
-  ctx.lineWidth = weight;
-
-  ctx.beginPath();
-  ctx.moveTo( cx + r, cy );
-  for ( let i = 1; i < numSides; i++ ) {
-    ctx.lineTo(
-      cx + r * Math.cos( angle * i ),
-      cy + r * Math.sin( angle * i )
-    );
-  }
-  ctx.closePath();
-}
-
-
 const speeds = [
   0.0025,
   0.003,
@@ -364,8 +289,8 @@ class Game {
   }
 
   drawPlayer() {
-    noStroke();
-    fill( 0, 100, 100, 200 );
+    ctx.strokeStyle = 'transparent';
+    ctx.fillStyle = color( 0, 100, 100, 200 );
 
     circle(
       canvas.width  / 2,
@@ -374,6 +299,7 @@ class Game {
     );
 
     drawPolygon(
+      ctx,
       lerp( canvas.width  / 2, originX, 1 ),
       lerp( canvas.height / 2, originY, 1 ),
       canvas.width / 2,

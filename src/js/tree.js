@@ -7,7 +7,6 @@ import {
   HALF_PI,
   distanceTo,
   lerp,
-  map,
   random,
   PI2
 } from './math';

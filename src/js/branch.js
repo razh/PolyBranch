@@ -8,6 +8,11 @@ import {
   random
 } from './math';
 
+import {
+  color,
+  triangle
+} from './canvas';
+
 // Create some kind of tree or branch object that takes in an initial triangle
 // and a number of limbs.
 export default class Branch {
@@ -34,41 +39,50 @@ export default class Branch {
     this.alpha = 255;
   }
 
-  setPos( ox, oy, w, h, easedDist ) {
+  setPos( x, y, width, height, easedDistance ) {
     const [ v0,  v1,  v2  ] = this.vertices;
     const [ ev0, ev1, ev2 ] = this.easedVertices;
 
-    ev0.x = v0.x * easedDist + ( ox - w / 2 );
-    ev0.y = v0.y * easedDist + ( oy - h / 2 );
-    ev1.x = v1.x * easedDist + ( ox - w / 2 );
-    ev1.y = v1.y * easedDist + ( oy - h / 2 );
-    ev2.x = v2.x * easedDist + ( ox - w / 2 );
-    ev2.y = v2.y * easedDist + ( oy - h / 2 );
+    // Translate to center.
+    x -= width  / 2;
+    y -= height / 2;
+
+    ev0.x = x + v0.x * easedDistance;
+    ev0.y = y + v0.y * easedDistance;
+    ev1.x = x + v1.x * easedDistance;
+    ev1.y = y + v1.y * easedDistance;
+    ev2.x = x + v2.x * easedDistance;
+    ev2.y = y + v2.y * easedDistance;
   }
 
-  render( ox, oy, w, h, easedDist ) {
+  render( ctx, x, y, w, h, easedDistance ) {
     const {
       hue,
       saturation,
       brightness
     } = this;
 
-    const alpha = this.alpha = ( easedDist > 2 ) ?
-      Math.floor( map( easedDist, 2, 8, 255, 0 ) ) :
+    const alpha = this.alpha = ( easedDistance > 2 ) ?
+      Math.floor( map( easedDistance, 2, 8, 255, 0 ) ) :
       255;
 
-    if ( easedDist <= 0.8 ) {
-      fill( hue, saturation, map( easedDist, 0.0, 0.8, 230, brightness ), alpha );
-      stroke( 0, map( easedDist, 0.0, 0.8, 0, 255 ) );
-    } else if ( easedDist <= 1.02 ) {
-      stroke( 0, alpha );
-      fill( hue, saturation, brightness, alpha );
+    if ( easedDistance <= 0.8 ) {
+      ctx.strokeStyle = color( 0, map( easedDistance, 0.0, 0.8, 0, 255 ) );
+      ctx.fillStyle   = color(
+        hue,
+        saturation,
+        map( easedDistance, 0.0, 0.8, 230, brightness ),
+        alpha
+      );
+    } else if ( easedDistance <= 1.02 ) {
+      ctx.strokeStyle = color( 0, alpha );
+      ctx.fillSTyle   = color( hue, saturation, brightness, alpha );
     } else {
-      stroke( 255, alpha );
-      fill( hue, saturation, 300 - brightness, alpha );
+      ctx.strokeStyle = color( 255, alpha );
+      ctx.fillSTyle   = color( hue, saturation, 300 - brightness, alpha );
     }
 
-    strokeWeight( 0.4 );
+    ctx.lineWidth = 0.4;
 
     const [ ev0, ev1, ev2 ] = this.easedVertices;
     triangle(

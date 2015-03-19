@@ -10,6 +10,11 @@ import {
   PI2
 } from './math';
 
+import {
+  color,
+  drawPolygon
+} from './canvas';
+
 export default class Layer {
   constructor( numSides, width, height, type ) {
     this.numSides = numSides;
@@ -91,7 +96,9 @@ export default class Layer {
     this.tree.reset();
   }
 
-  render() {
+  render( ctx ) {
+    const { canvas } = ctx;
+
     if ( this.type === 'active' ) {
       this.tree.render(
         lerp( canvas.width  / 2, originX, this.easedDistance ),
@@ -103,15 +110,15 @@ export default class Layer {
     }
     else if ( this.type === 'level' ) {
       if ( this.easedDistance < 0.8 ) {
-        fill( map( this.easedDistance, 0.0, 0.8, 255, 100 ) );
+        ctx.fillStyle = color( map( this.easedDistance, 0.0, 0.8, 255, 100 ) );
       }
       else {
         const alpha = ( this.easedDistance > 2 ) ?
           Math.floor( map( this.easedDistance, 2, 8, 255, 0 ) ) :
           255;
-        fill( 100, alpha );
+        ctx.fillStyle = color( 100, alpha );
       }
-      noStroke();
+      ctx.strokeStyle = 'transparet';
       shape(
         levelText[ game.level - 2 ],
         lerp( canvas.width  / 2, originX, this.easedDistance ),
@@ -121,14 +128,13 @@ export default class Layer {
       );
     }
 
-    const c = color( 100 );
     drawPolygon(
       lerp( canvas.width  / 2, originX, this.easedDistance ),
       lerp( canvas.height / 2, originY, this.easedDistance ),
       ( this.layerWidth - this.ringWeight ) * this.easedDistance / 2,
       this.numSides,
       this.ringWeight * this.easedDistance,
-      c
+      color( 100 )
     );
   }
 }
