@@ -16,28 +16,28 @@ import {
 } from './canvas';
 
 export default class Layer {
-  constructor( numSides, width, height, type ) {
-    this.numSides = numSides;
-    this.layerWidth = width;
+  constructor( sideCount, width, height, type ) {
+    this.sideCount   = sideCount;
+    this.layerWidth  = width;
     this.layerHeight = height;
 
     this.startVertex = 0;
-    this.ringWeight = 6;
+    this.ringWeight  = 6;
 
-    this.distance = 1;
+    this.distance      = 1;
     this.easedDistance = 0;
 
     this.passed = false;
-    this.type = type;
+    this.type   = type;
 
     if ( this.type === 'active' ) {
-      const startVertex = this.startVertex = Math.floor( Math.random() * numSides );
+      const startVertex = this.startVertex = Math.floor( Math.random() * sideCount );
 
       const halfWidth      = this.layerWidth  / 2;
       const halfHeight     = this.layerHeight / 2;
       const halfRingWeight = this.ringWeight  / 2;
 
-      const angle = PI2 / this.numSides;
+      const angle = PI2 / this.sideCount;
 
       const angleA = angle * startVertex;
       const angleB = angle * ( startVertex - 1 );
@@ -63,13 +63,13 @@ export default class Layer {
     }
   }
 
-  updateDistance( game, player, increment ) {
-    this.distance += increment;
+  updateDistance( game ) {
+    this.distance += game.speed;
     this.easedDistance = easeInExpo( this.distance, this.distance, 0, 1, 1 );
     if ( this.easedDistance >= map( game.speed, 0.0025, 0.008, 0.999, 0.9 ) &&
          this.easedDistance <= map( game.speed, 0.0025, 0.008, 1.02, 1.04 ) ) {
       if ( this.type === 'active' ) {
-        this.tree.checkCollisions( game, player );
+        this.tree.checkCollisions( game );
       } else if ( this.type === 'level' ) {
         if ( game.speed !== game.speeds[ game.level - 1 ] ) {
           game.speed = game.speeds[ game.level - 1 ];
@@ -84,16 +84,14 @@ export default class Layer {
     }
   }
 
-  getNumSides() {
-    return this.numSides;
-  }
-
   reset( type ) {
-    this.type = type;
-    this.distance = 0;
+    this.distance      = 0;
     this.easedDistance = 0;
+
     this.passed = false;
-    this.tree.reset( this.numSides );
+    this.type   = type;
+
+    this.tree.reset( this.sideCount );
   }
 
   render( game ) {
@@ -116,13 +114,13 @@ export default class Layer {
     else if ( this.type === 'level' ) {
       if ( this.easedDistance < 0.8 ) {
         ctx.fillStyle = color( map( this.easedDistance, 0.0, 0.8, 255, 100 ) );
-      }
-      else {
+      } else {
         const alpha = ( this.easedDistance > 2 ) ?
           Math.floor( map( this.easedDistance, 2, 8, 255, 0 ) ) :
           255;
         ctx.fillStyle = color( 100, alpha );
       }
+
       ctx.strokeStyle = 'transparent';
       shape(
         levelText[ game.level - 2 ],
@@ -137,7 +135,7 @@ export default class Layer {
       lerp( canvas.width  / 2, originX, this.easedDistance ),
       lerp( canvas.height / 2, originY, this.easedDistance ),
       ( this.layerWidth - this.ringWeight ) * this.easedDistance / 2,
-      this.numSides,
+      this.sideCount,
       this.ringWeight * this.easedDistance,
       color( 100 )
     );

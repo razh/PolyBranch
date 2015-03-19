@@ -93,11 +93,13 @@ export default class Branch {
   }
 
   // Collision detection functions.
-  playerOverlap( game, player ) {
+  playerOverlap( game ) {
     const {
-      r,
-      pos: { x, y }
-    } = player;
+      player: {
+        position: { x, y },
+        radius
+      }
+    } = game;
 
     const [
      { x: x0, y: y0 },
@@ -106,18 +108,18 @@ export default class Branch {
     ] = this.easedVertices;
 
     if (
-      distanceTo( x, y, x0, y0 ) < r ||
-      distanceTo( x, y, x1, y1 ) < r ||
-      distanceTo( x, y, x2, y2 ) < r ||
+      distanceTo( x, y, x0, y0 ) < radius ||
+      distanceTo( x, y, x1, y1 ) < radius ||
+      distanceTo( x, y, x2, y2 ) < radius ||
       pointInTriangle(
         x, y,
         x2, y2,
         x1, y1,
         x0, y0
       ) ||
-      circleLineIntersection( x, y, r, x0, y0, x1, y1 ) ||
-      circleLineIntersection( x, y, r, x1, y1, x2, y2 ) ||
-      circleLineIntersection( x, y, r, x2, y2, x0, y0 )
+      circleLineIntersection( x, y, radius, x0, y0, x1, y1 ) ||
+      circleLineIntersection( x, y, radius, x1, y1, x2, y2 ) ||
+      circleLineIntersection( x, y, radius, x2, y2, x0, y0 )
     ) {
       this.brightness = this.saturation = 100;
       game.gameOver();

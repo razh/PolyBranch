@@ -12,14 +12,15 @@ import {
 } from './math';
 
 export default class Tree {
-  constructor( numBranches, trunk ) {
-    this.numBranches = numBranches;
-    this.branches = [];
+  constructor( branchCount, trunk ) {
+    this.branchCount = branchCount;
+    this.branches    = [];
+
     for ( let i = 0; i < 16; i++ ) {
       this.branches[i] = new Branch();
     }
 
-    this.index = 0;
+    this.index  = 0;
     this.trunkLength = 0;
 
     if ( trunk ) {
@@ -47,7 +48,7 @@ export default class Tree {
     const halfWidth  = canvas.width  / 2;
     const halfHeight = canvas.height / 2;
 
-    if ( ( side === 1 || side === 2 ) && this.index < this.numBranches ) {
+    if ( ( side === 1 || side === 2 ) && this.index < this.branchCount ) {
       const angle  = angleTo( v2, v0 ) + Math.random() * HALF_PI;
       const length = distanceTo( v2.x, v2.y, v0.x, v0.y ) * 0.7;
 
@@ -92,7 +93,7 @@ export default class Tree {
       }
     }
 
-    if ( ( side === 0 || side === 2 ) && this.index < this.numBranches ) {
+    if ( ( side === 0 || side === 2 ) && this.index < this.branchCount ) {
       const angle  = angleTo( v2, v1 ) - Math.random() * HALF_PI;
       const length = distanceTo( v2.x, v2.y, v1.x, v1.y ) * 0.7;
 
@@ -137,26 +138,26 @@ export default class Tree {
     }
   }
 
-  reset( game, numSides) {
+  reset( game, sideCount ) {
     const { canvas } = game;
 
     this.index = 1;
-    this.numBranches = game.numBranches;
+    this.branchCount = game.branchCount;
 
-    for ( let i = 1; i < this.numBranches; i++ ) {
+    for ( let i = 1; i < this.branchCount; i++ ) {
       const branch = this.branches[i];
       branch.brightness = Math.floor( random( 50, 200 ) );
       branch.vertices[0].x = 0;
       branch.vertices[0].y = 0;
     }
 
-    const startVertex = this.startVertex = Math.floor( Math.random() * numSides );
+    const startVertex = this.startVertex = Math.floor( Math.random() * sideCount );
 
     const halfWidth      = this.layerWidth  / 2;
     const halfHeight     = this.layerHeight / 2;
     const halfRingWeight = this.ringWeight  / 2;
 
-    const angle = PI2 / numSides;
+    const angle = PI2 / sideCount;
 
     const angleA = angle * startVertex;
     const angleB = angle * ( startVertex - 1 );
@@ -186,17 +187,17 @@ export default class Tree {
     this.populateRandomBranches( branch, 2 );
   }
 
-  checkCollisions( game, player ) {
-    for ( let i = 0; i < this.numBranches; i++ ) {
+  checkCollisions( game ) {
+    for ( let i = 0; i < this.branchCount; i++ ) {
       const branch = this.branches[i];
       if ( branch.vertices[0].x && branch.vertices[0].y ) {
-        branch.playerOverlap( game, player );
+        branch.playerOverlap( game );
       }
     }
   }
 
   render( originX, originY, width, height, easedDistance ) {
-    for ( let i = 0; i < this.numBranches; i++ ) {
+    for ( let i = 0; i < this.branchCount; i++ ) {
       const branch = this.branches[i];
       if ( branch.vertices[0].x && branch.vertices[0].y ) {
         branch.setPosition( originX, originY, width, height, easedDistance );

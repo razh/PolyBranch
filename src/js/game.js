@@ -35,87 +35,6 @@ function setup() {
   processingIsReady();
 }
 
-function draw( game ) {
-  const {
-    canvas,
-    originX,
-    originY
-  } = game;
-
-  if ( keys[0] || keys[1] || keys[2] || keys[3] ) {
-    player.hue += game.speed * 100;
-    if ( player.hue > 255 ) {
-      player.hue = 0;
-    }
-  }
-
-  const {
-    r,
-    vx,
-    vy,
-    pos: { x, y }
-  } = player;
-
-  const halfHeight = canvas.height / 2;
-  const distance = halfHeight - r - 8;
-
-  if ( keys[0] || keys[1] ) {
-    if ( keys[0] ) {
-      if ( vy < 0 && distanceTo( x, y, originX, originY + vy ) > distance ) {
-        player.vy = 0;
-      }
-      player.vy += 0.3;
-    }
-
-    if ( keys[1] ) {
-      if ( vy > 0 && distanceTo( x, y, originX, originY + vy ) > distance ) {
-        player.vy = 0;
-      }
-      player.vy -= 0.3;
-    }
-  } else if ( vy ) {
-    if ( vy > 0 ) {
-      player.vy = Math.max( player.vy - 0.5, 0 );
-    } else if ( vy < 0 ) {
-      player.vy = Math.min( player.vy + 0.5, 0 );
-    }
-  }
-
-  if ( keys[2] || keys[3] ) {
-    if ( keys[2] ) {
-      if ( vx < 0 && distanceTo( x, y, originX + vx, originY ) > distance ) {
-        player.vx = 0;
-      }
-      player.vx += 0.3;
-    }
-
-    if ( keys[3] ) {
-      if ( vx > 0 && distanceTo( x, y, originX + vx, originY ) > distance ) {
-        player.vx = 0;
-      }
-      player.vx -= 0.3;
-    }
-  } else if ( vx ) {
-    if ( vx > 0 ) {
-      player.vx = Math.max( player.vx - 0.5, 0 );
-    } else if ( vx < 0 ) {
-      player.vx = Math.min( player.vx + 0.5, 0 );
-    }
-  }
-
-  originX += vx;
-  originY += vy;
-
-  if ( distanceTo( x, y, originX, originY ) > distance ) {
-    const angle = angleTo( player.pos, new THREE.Vector3( originX, originY ) ) - Math.PI;
-    originX = x + distance * Math.cos( angle );
-    originY = y + distance * Math.sin( angle );
-  }
-
-  background( 255 );
-  game.update();
-}
-
 function onMouseDown() {
   player.speed++;
 }
@@ -151,9 +70,9 @@ function pause() {
   }
 }
 
-function newGame() {
+function reset() {
   player.reset( game );
-  game.newGame();
+  game.reset();
 }
 
 function getNextScore( index ) {
@@ -219,16 +138,18 @@ class Game {
     this.originX = this.canvas.width  / 2;
     this.originY = this.canvas.height / 2;
 
-    this.score  = 0;
     this.layers = [];
 
     this.drawnPlayer = false;
     this.isGameOver  = false;
-    this.numBranches = 6;
 
+    this.score   = 0;
     this.level   = 1;
     this.levelUp = 3;
-    this.speed   = speeds[0];
+
+    this.speed       = speeds[0];
+    this.speeds      = speeds;
+    this.branchCount = 6;
 
     // Make layers.
     for ( let i = 0; i < 13; i++ ) {
@@ -276,7 +197,7 @@ class Game {
           layer.reset( 'active' );
         }
       } else {
-        layer.updateDistance( this, player, this.speed );
+        layer.updateDistance( this );
         if ( !this.isGameOver ) {
           if ( layer.easedDistance >= 1 && !this.drawnPlayer ) {
             this.drawPlayer();
@@ -287,6 +208,88 @@ class Game {
       }
     }
   }
+
+  draw() {
+    const {
+      canvas,
+      player,
+      speed,
+      originX,
+      originY
+    } = this;
+
+    if ( keys[0] || keys[1] || keys[2] || keys[3] ) {
+      player.hue += speed * 100;
+      if ( player.hue > 255 ) {
+        player.hue = 0;
+      }
+    }
+
+    const {
+      position: { x, y },
+      velocity: {
+        x: vx,
+        y: vy
+      },
+      radius
+    } = player;
+
+    const halfHeight = canvas.height / 2;
+    const distance   = halfHeight - radius - 8;
+
+    if ( keys[0] || keys[1] ) {
+      if ( keys[0] ) {
+        if ( vy < 0 && distanceTo( x, y, originX, originY + vy ) > distance ) {
+          player.velocity.y = 0;
+        }
+        player.velocity.y += 0.3;
+      }
+
+      if ( keys[1] ) {
+        if ( vy > 0 && distanceTo( x, y, originX, originY + vy ) > distance ) {
+          player.velocity.y = 0;
+        }
+        player.velocity.y -= 0.3;
+      }
+    } else if ( vy > 0 ) {
+      player.velocity.y = Math.max( vy - 0.5, 0 );
+    } else if ( vy < 0 ) {
+      player.velocity.y = Math.min( vy + 0.5, 0 );
+    }
+
+    if ( keys[2] || keys[3] ) {
+      if ( keys[2] ) {
+        if ( vx < 0 && distanceTo( x, y, originX + vx, originY ) > distance ) {
+          player.velocity.x = 0;
+        }
+        player.velocity.x += 0.3;
+      }
+
+      if ( keys[3] ) {
+        if ( vx > 0 && distanceTo( x, y, originX + vx, originY ) > distance ) {
+          player.velocity.x = 0;
+        }
+        player.velocity.x -= 0.3;
+      }
+    } else if ( vx ) {
+      player.velocity.x = Math.max( vx - 0.5, 0 );
+    } else if ( vx < 0 ) {
+      player.velocity.x = Math.min( vx + 0.5, 0 );
+    }
+
+    this.originX += vx;
+    this.originY += vy;
+
+    if ( distanceTo( x, y, originX, originY ) > distance ) {
+      const angle = angleTo( player.position, new THREE.Vector3( originX, originY ) ) - Math.PI;
+      this.originX = x + distance * Math.cos( angle );
+      this.originY = y + distance * Math.sin( angle );
+    }
+
+    background( 255 );
+    this.update();
+  }
+
 
   drawPlayer() {
     const {
@@ -302,7 +305,7 @@ class Game {
     circle(
       canvas.width  / 2,
       canvas.height / 2,
-      player.r * 2
+      player.radius * 2
     );
 
     drawPolygon(
@@ -321,23 +324,26 @@ class Game {
   checkLevel() {
     for ( let i = scores.length - 1; i >= 0; i++ ) {
       if ( this.score > scores[i] && this.level < ( i + 1 ) ) {
-        this.level = i + 1;
-        this.numBranches = branches[i];
-        this.levelUp = 0;
+        this.level       = i + 1;
+        this.branchCount = branches[i];
+        this.levelUp     = 0;
         break;
       }
     }
   }
 
-  newGame() {
+  reset() {
     const { canvas } = this;
 
-    this.score = 0;
-    this.numBranches = 6;
-    this.level = 1;
-    this.speed = speeds[0];
-    this.isGameOver = false;
     this.layers = [];
+
+    this.isGameOver = false;
+
+    this.score = 0;
+    this.level = 1;
+
+    this.branchCount = 6;
+    this.speed       = speeds[0];
 
     this.originX = canvas.width  / 2;
     this.originY = canvas.height / 2;
