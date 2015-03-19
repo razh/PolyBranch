@@ -169,6 +169,7 @@ canvas {
 }
 
 #page {
+  display: none;
   color: #eee;
 }
 

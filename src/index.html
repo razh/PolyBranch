@@ -10,12 +10,12 @@
   <meta property="og:url" content="http://gregbatha.com/branches/"/>
   <meta property="og:image" content="http://gregbatha.com/branches/screenshot1.png"/>
 
-  <link rel="icon"  type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAQAAVzABAEAjBQAaDwYAWjUGAGE6CQBrQQ0ATS8PAFhAJwBUQC8AbFI6AHVXPACBZk4A4NrWAPb19QAAAAAAAMmZmZmZmgAJIwAAAAAAcMIjPjA+PjAKpxIuMDMzMAm0Ii4zMzMACaIiLt3dMAAJtyIuIzPQAAm0Un5yM+IzKLRkfncy4iIotRF+dyLkIiq0QX53F+EiGrQUTkd34iIatEVu7u5iIVrBVVRBRFRVbAtGZGZla2uwAMu7u7u8vADAAwAAgAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAADAAwAA" />
+  <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII=" />
+
   <!--[if lt IE 9]>
     <script type="text/javascript">alert("Your browser does not support the canvas tag.");</script>
   <![endif]-->
   <link href='./index.css' rel='stylesheet'>
-  <script src="./index.js"></script>
 </head>
 <body>
   <div id="content">
@@ -26,7 +26,7 @@
 
       <div class="overlay" id="main-menu">
         <div class="content">
-          <h1>PolyBranch</h1>
+          <!-- <h1>PolyBranch</h1> -->
           <button id="start">START</button>
         </div>
       </div>
@@ -36,7 +36,7 @@
         <h1 id="level">L<span>1</span></h1>
       </div>
 
-      <img id="arrow-keys" src="Arrow_keys.png"/>
+      <img id="arrow-keys" />
 
       <div class="overlay" id="flash"></div>
 
@@ -50,7 +50,7 @@
       </div>
 
       <div class="overlay" id="loading">
-        <h2>Loading...</h2>
+        <h2>...</h2>
       </div>
 
       <noscript>
@@ -63,5 +63,7 @@
       <p>PolyBranch is my submission for the <a target="_blank" href="https://github.com/github/game-off-2012">Github Game Off!</a> This game is written using a combination of <a target="_blank" href="http://processingjs.org/">Processing.js</a> and <a target="_blank" href="http://jquery.com/">jQuery</a>. You can view the git repo for the game <a target="_blank" href="https://github.com/gbatha/PolyBranch">here!</a?</p>
     </div>
   </div>
+
+  <script src="./bundle.js"></script>
 </body>
 </html>
