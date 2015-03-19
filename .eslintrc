@@ -11,6 +11,7 @@
     "no-shadow": 0,
     "key-spacing": 0,
     "strict": [0, "never"],
-    "quotes": [2, "single", "avoid-escape"]
+    "quotes": [2, "single", "avoid-escape"],
+    "yoda": 0
   }
 }
