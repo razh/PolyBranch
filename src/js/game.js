@@ -1,4 +1,5 @@
 import THREE from 'three';
+import { EventEmitter } from 'events';
 
 import Layer from './layer';
 import Player from './player';
@@ -15,37 +16,6 @@ import {
   circle,
   drawPolygon
 } from './canvas';
-
-let paused;
-let game;
-
-function setup() {
-  paused = true;
-
-  background( 230 );
-
-  game = new Game();
-  noLoop();
-
-  processingIsReady();
-}
-
-function pause() {
-  if ( paused ) {
-    loop();
-    paused = false;
-    jsStartGame( true );
-  } else {
-    noLoop();
-    paused = true;
-  }
-}
-
-function getNextScore( index ) {
-  return index < game.scores.length ?
-    game.scores[ index ] :
-    0;
-}
 
 const speeds = [
   0.0025,
@@ -93,13 +63,14 @@ const branches = [
 ];
 
 // Tree has been moved inside layer as an internal class.
-class Game {
-  constructor() {
-    this.canvas = document.querySelector( 'canvas' );
+export default class Game extends EventEmitter {
+  constructor( canvas ) {
+    this.canvas = canvas;
     this.ctx    = this.canvas.getContext( '2d' );
 
     this.canvas.width  = 800;
     this.canvas.height = 800;
+    this.background    = color( 230 );
 
     this.originX = this.canvas.width  / 2;
     this.originY = this.canvas.height / 2;
@@ -119,6 +90,8 @@ class Game {
     this.speed       = speeds[0];
     this.speeds      = speeds;
     this.branchCount = 6;
+
+    this.running = false;
 
     // Make layers.
     for ( let i = 0; i < 13; i++ ) {
@@ -140,6 +113,14 @@ class Game {
         layer.distance,
         0, 1, 1
       );
+    }
+  }
+
+  tick() {
+    this.draw();
+
+    if ( this.running ) {
+      requestAnimationFrame( this.tick.bind( this ) );
     }
   }
 
@@ -178,15 +159,29 @@ class Game {
     }
   }
 
+  toggle() {
+    if ( !this.running ) {
+      this.running = true;
+      this.emit( 'start', true );
+      this.tick();
+    } else {
+      this.running = false;
+    }
+  }
+
   draw() {
     const {
       canvas,
+      ctx,
       player,
       keys,
       speed,
       originX,
       originY
     } = this;
+
+    ctx.fillStyle = this.background;
+    ctx.fillRect( 0, 0, canvas.width, canvas.height );
 
     if ( keys[0] || keys[1] || keys[2] || keys[3] ) {
       player.hue += speed * 100;
@@ -256,10 +251,9 @@ class Game {
       this.originY = y + distance * Math.sin( angle );
     }
 
-    background( 255 );
+    this.background = color( 255 );
     this.update();
   }
-
 
   drawPlayer() {
     const {
@@ -303,6 +297,10 @@ class Game {
     }
   }
 
+  getNextScore( index ) {
+    return scores[ index ] || 0;
+  }
+
   reset() {
     const { canvas } = this;
     this.player.reset( this );
@@ -341,20 +339,19 @@ class Game {
       );
     }
 
-    redraw();
+    this.draw();
   }
 
-  gameOver() {
+  end() {
     if ( !this.isGameOver ) {
-      jsGameOver( this.score );
+      this.emit( 'end', this.score );
       this.isGameOver = true;
-      background( 0, 0, 255 );
+      this.background = color( 0, 0, 255 );
       for ( let i = 0; i < this.layers.length; i++ ) {
         this.layers[i].render();
       }
 
-      noLoop();
-      paused = true;
+      this.running = false;
     }
   }
 

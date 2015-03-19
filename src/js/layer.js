@@ -73,14 +73,13 @@ export default class Layer {
       } else if ( this.type === 'level' ) {
         if ( game.speed !== game.speeds[ game.level - 1 ] ) {
           game.speed = game.speeds[ game.level - 1 ];
-          jsIncrementLevel();
+          game.emit( 'level' );
         }
       }
     } else if ( this.easedDistance > 1 && !this.passed && this.type === 'active' ) {
       this.passed = true;
       game.score += 100;
-      jsUpdateScore( game.score );
-      jsTriggerBell();
+      game.emit( 'score', game.score );
     }
   }
 

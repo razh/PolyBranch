@@ -122,7 +122,7 @@ export default class Branch {
       circleLineIntersection( x, y, radius, x2, y2, x0, y0 )
     ) {
       this.brightness = this.saturation = 100;
-      game.gameOver();
+      game.end();
     }
   }
 }

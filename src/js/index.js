@@ -1,4 +1,4 @@
-/*global pjs*/
+import Game from './game';
 
 const DURATION      = 300;
 const LONG_DURATION = 1000;
@@ -42,16 +42,20 @@ function css( el, props ) {
   return el;
 }
 
+// Initialize.
+const game = new Game( $( 'canvas' ) );
+$loading.fadeOut( DURATION );
+
 $start.addEventListener( 'click', () => {
   if( !playing ) {
-    jsStartGame( false );
+    game.emit( 'start', false );
     playing = true;
   }
 });
 
 $retry.addEventListener( 'click', () => {
   if( !playing ) {
-    jsNewGame();
+    newGame();
     playing = true;
   }
 });
@@ -62,13 +66,9 @@ document.addEventListener( 'keydown', () => {
   }
 });
 
-function processingIsReady() {
-  $loading.fadeOut( DURATION );
-}
-
-function jsStartGame( fromProcessing ) {
+game.on( 'start', fromProcessing => {
   if ( !fromProcessing ) {
-    pjs.pause();
+    game.toggle();
   }
 
   $mainMenuContent.fadeOut( DURATION, () => {
@@ -80,10 +80,10 @@ function jsStartGame( fromProcessing ) {
     $hud.fadeIn( DURATION );
     $mainMenu.fadeOut( DURATION );
   });
-}
+});
 
-function jsNewGame() {
-  pjs.reset();
+function newGame() {
+  game.reset();
 
   $score.textContent = 0;
   $level.textContent = 1;
@@ -95,20 +95,18 @@ function jsNewGame() {
         .animate( { opacity: 0 }, DURATION, () => {
           hide( $gameOverMenu );
           $hud.fadeIn( DURATION );
-          pjs.pause();
+          game.toggle();
         });
     });
 }
 
-function jsUpdateScore( score ) {
-  $score.textContent = score.toLocaleString();
-}
+game.on( 'score', score => $score.textContent = score.toLocaleString() );
 
-function jsIncrementLevel() {
-  $level.textContent( parseInt( $level.textContent ) + 1 );
-}
+game.on( 'level', () =>
+  $level.textContent( parseInt( $level.textContent ) + 1 )
+);
 
-function jsGameOver( score ) {
+game.on( 'end', score => {
   playing = false;
 
   show( $flash );
@@ -120,8 +118,8 @@ function jsGameOver( score ) {
       hide( $flash );
       css( $flash, { 'opacity': 1 } );
 
-    $gameOverScore.innerHTML = score.toLocaleString() +
-      '<span id="L">L' + $level.textContent + '</span>';
+      $gameOverScore.innerHTML = score.toLocaleString() +
+        '<span id="L">L' + $level.textContent + '</span>';
 
       if( localStorage.highScore === undefined ||
           score > parseInt( localStorage.highScore ) ) {
@@ -135,7 +133,7 @@ function jsGameOver( score ) {
       }
 
       $nextLevel.textContent = (
-        pjs.getNextScore( parseInt( $level.textContent ) ) + 1000
+        game.getNextScore( parseInt( $level.textContent ) ) + 1000
       ).toLocaleString();
 
       show( $gameOverMenu );
@@ -145,4 +143,4 @@ function jsGameOver( score ) {
           $gameOverContent.animate( { opacity: 1 }, DURATION );
         });
     });
-}
+});
