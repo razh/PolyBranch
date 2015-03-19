@@ -1,4 +1,6 @@
-class Player {
+import THREE from 'three';
+
+export default class Player {
   constructor() {
     this.pos = new THREE.Vector3(
       canvas.width  / 2,

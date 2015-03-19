@@ -1,4 +1,16 @@
-class Layer {
+import THREE from 'three';
+
+import Tree from './tree';
+import Branch from './branch';
+
+import {
+  easeInExpo,
+  lerp,
+  map,
+  PI2
+} from './math';
+
+export default class Layer {
   constructor( numSides, width, height, type ) {
     this.numSides = numSides;
     this.layerWidth = width;
@@ -20,7 +32,7 @@ class Layer {
       const halfHeight     = this.layerHeight / 2;
       const halfRingWeight = this.ringWeight  / 2;
 
-      const angle = TWO_PI / this.numSides;
+      const angle = PI2 / this.numSides;
 
       const angleA = angle * startVertex;
       const angleB = angle * ( startVertex - 1 );

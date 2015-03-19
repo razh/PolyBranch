@@ -1,33 +1,15 @@
-/*jshint
-globalstrict:true,
-browser:true,
-esnext:true,
-undef:true
-*/
+import THREE from 'three';
 
-// Processing globals:
-/*global
-redraw,
-background,
-loop, noLoop,
-color,
-beginShape, endShape, vertex, shape,
-colorMode, imageMode, rectMode, ellipseMode, shapeMode,
-HSB, CENTER, CLOSE
-*/
+import Layer from './layer';
+import Player from './player';
 
-// environment globals:
-/*global
-processingIsReady,
-jsStartGame,
-jsTriggerBell,
-jsUpdateScore,
-jsIncrementLevel,
-jsGameOver
-*/
-
-/*global THREE*/
-'use strict';
+import {
+  angleTo,
+  distanceTo,
+  easeInExpo,
+  lerp,
+  PI2
+} from './math';
 
 // Processing functions.
 const canvas = document.querySelector( 'canvas' );
@@ -93,7 +75,7 @@ function triangle( x0, y0, x1, y1, x2, y2 ) {
 
 function circle( x, y, r ) {
   ctx.beginPath();
-  ctx.arc( x, y, r, 0, TWO_PI );
+  ctx.arc( x, y, r, 0, PI2 );
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
@@ -116,11 +98,6 @@ function setup() {
   originX = canvas.width  / 2;
   originY = canvas.height / 2;
 
-  colorMode( HSB, 255 );
-  imageMode( CENTER );
-  rectMode( CENTER );
-  shapeMode( CENTER );
-  noStroke();
   background( 230 );
 
   player = new Player();
@@ -150,14 +127,14 @@ function draw() {
 
   if ( keys[0] || keys[1] ) {
     if ( keys[0] ) {
-      if ( vy < 0 && dist( x, y, originX, originY + vy ) > distance ) {
+      if ( vy < 0 && distanceTo( x, y, originX, originY + vy ) > distance ) {
         player.vy = 0;
       }
       player.vy += 0.3;
     }
 
     if ( keys[1] ) {
-      if ( vy > 0 && dist( x, y, originX, originY + vy ) > distance ) {
+      if ( vy > 0 && distanceTo( x, y, originX, originY + vy ) > distance ) {
         player.vy = 0;
       }
       player.vy -= 0.3;
@@ -172,14 +149,14 @@ function draw() {
 
   if ( keys[2] || keys[3] ) {
     if ( keys[2] ) {
-      if ( vx < 0 && dist( x, y, originX + vx, originY ) > distance ) {
+      if ( vx < 0 && distanceTo( x, y, originX + vx, originY ) > distance ) {
         player.vx = 0;
       }
       player.vx += 0.3;
     }
 
     if ( keys[3] ) {
-      if ( vx > 0 && dist( x, y, originX + vx, originY ) > distance ) {
+      if ( vx > 0 && distanceTo( x, y, originX + vx, originY ) > distance ) {
         player.vx = 0;
       }
       player.vx -= 0.3;
@@ -195,7 +172,7 @@ function draw() {
   originX += vx;
   originY += vy;
 
-  if ( dist( x, y, originX, originY ) > distance ) {
+  if ( distanceTo( x, y, originX, originY ) > distance ) {
     const angle = angleTo( player.pos, new THREE.Vector3( originX, originY ) ) - Math.PI;
     originX = x + distance * Math.cos( angle );
     originY = y + distance * Math.sin( angle );
@@ -252,7 +229,7 @@ function getNextScore( index ) {
 }
 
 function drawPolygon( cx, cy, r, numSides, weight, color ) {
-  const angle = TWO_PI / numSides;
+  const angle = PI2 / numSides;
   noFill();
 
   ctx.strokeStyle = color;

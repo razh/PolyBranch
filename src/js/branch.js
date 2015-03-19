@@ -1,6 +1,16 @@
+import THREE from 'three';
+
+import {
+  circleLineIntersection,
+  distanceTo,
+  map,
+  pointInTriangle,
+  random
+} from './math';
+
 // Create some kind of tree or branch object that takes in an initial triangle
 // and a number of limbs.
-class Branch {
+export default class Branch {
   constructor(
     a = new THREE.Vector3(),
     b = new THREE.Vector3(),
@@ -82,9 +92,9 @@ class Branch {
     ] = this.easedVertices;
 
     if (
-      dist( x, y, x0, y0 ) < r ||
-      dist( x, y, x1, y1 ) < r ||
-      dist( x, y, x2, y2 ) < r ||
+      distanceTo( x, y, x0, y0 ) < r ||
+      distanceTo( x, y, x1, y1 ) < r ||
+      distanceTo( x, y, x2, y2 ) < r ||
       pointInTriangle(
         x, y,
         x2, y2,

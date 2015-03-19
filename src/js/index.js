@@ -1,6 +1,4 @@
-/*jshint esnext:true*/
-/*global $, pjs*/
-'use strict';
+/*global $*/
 
 let firstPlaythrough = true;
 let playing = false;

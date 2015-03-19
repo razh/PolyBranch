@@ -1,4 +1,18 @@
-class Tree {
+import THREE from 'three';
+
+import Branch from './branch';
+
+import {
+  angleTo,
+  HALF_PI,
+  distanceTo,
+  lerp,
+  map,
+  random,
+  PI2
+} from './math';
+
+export default class Tree {
   constructor( numBranches, trunk ) {
     this.numBranches = numBranches;
     this.branches = [];
@@ -14,7 +28,7 @@ class Tree {
 
       this.branches[ this.index ] = trunk;
       this.index++;
-      this.trunkLength = dist(
+      this.trunkLength = distanceTo(
         lerp( v0.x, v1.x, 0.5 ),
         lerp( v0.y, v1.y, 0.5 ),
         v2.x, v2.y
@@ -39,14 +53,14 @@ class Tree {
 
     if ( ( side === 1 || side === 2 ) && this.index < this.numBranches ) {
       const angle  = angleTo( v2, v0 ) + Math.random() * HALF_PI;
-      const length = dist( v2.x, v2.y, v0.x, v0.y ) * 0.7;
+      const length = distanceTo( v2.x, v2.y, v0.x, v0.y ) * 0.7;
 
       if ( length > ( this.trunkLength * 0.4 ) ) {
         // Check if the random angle will fit inside the circle.
         const xi = v2.x + length * Math.cos( angle );
         const yi = v2.y + length * Math.sin( angle );
 
-        if ( dist( xi, yi, halfWidth, halfHeight ) < halfWidth ) {
+        if ( distanceTo( xi, yi, halfWidth, halfHeight ) < halfWidth ) {
           this.branches[ this.index ] = new Branch(
             new THREE.Vector3( v2.x, v2.y ),
             new THREE.Vector3(
@@ -64,13 +78,13 @@ class Tree {
           // Check if the min or max angle fit inside the area.
         }
         else if (
-          dist(
+          distanceTo(
             v2.x + length * Math.cos( angleTo( v2, v0 ) + HALF_PI ),
             v2.y + length * Math.sin( angleTo( v2, v0 ) + HALF_PI ),
             halfWidth,
             halfHeight
           ) < halfWidth ||
-          dist(
+          distanceTo(
             v2.x + length * Math.cos( angleTo( v2, v0 ) ),
             v2.y + length * Math.sin( angleTo( v2, v0 ) ),
             halfWidth,
@@ -84,14 +98,14 @@ class Tree {
 
     if ( ( side === 0 || side === 2 ) && this.index < this.numBranches ) {
       const angle  = angleTo( v2, v1 ) - Math.random() * HALF_PI;
-      const length = dist( v2.x, v2.y, v1.x, v1.y ) * 0.7;
+      const length = distanceTo( v2.x, v2.y, v1.x, v1.y ) * 0.7;
 
       if ( length > ( this.trunkLength * 0.4 ) ) {
         // Check if the random angle will fit inside the circle.
         const xi = v2.x + length * Math.cos( angle );
         const yi = v2.y + length * Math.sin( angle );
 
-        if ( dist( xi, yi, halfWidth, halfHeight ) < halfWidth ) {
+        if ( distanceTo( xi, yi, halfWidth, halfHeight ) < halfWidth ) {
           this.branches[ this.index ] = new Branch(
             new THREE.Vector3(
               lerp( v2.x, v0.x, 0.3 ),
@@ -108,13 +122,13 @@ class Tree {
           );
         }
         else if (
-          dist(
+          distanceTo(
             v2.x + length * Math.cos( angleTo( v2, v1 ) - HALF_PI ),
             v2.y + length * Math.sin( angleTo( v2, v1 ) - HALF_PI ),
             halfWidth,
             halfHeight
           ) < halfWidth ||
-          dist(
+          distanceTo(
             v2.x + length * Math.cos( angleTo( v2, v1 ) ),
             v2.y + length * Math.sin( angleTo( v2, v1 ) ),
             halfWidth,
@@ -144,7 +158,7 @@ class Tree {
     const halfHeight     = this.layerHeight / 2;
     const halfRingWeight = this.ringWeight  / 2;
 
-    const angle = TWO_PI / this.numSides;
+    const angle = PI2 / this.numSides;
 
     const angleA = angle * startVertex;
     const angleB = angle * ( startVertex - 1 );
@@ -165,7 +179,7 @@ class Tree {
 
     const [ v0, v1, v2 ] = branch.vertices;
 
-    this.trunkLength = dist(
+    this.trunkLength = distanceTo(
       lerp( v0.x, v1.x, 0.5 ),
       lerp( v0.y, v1.y, 0.5 ),
       v2.x, v2.y
