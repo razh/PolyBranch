@@ -1,47 +1,7 @@
-/*global $*/
+/*global $, pjs*/
 
 let firstPlaythrough = true;
 let playing = false;
-
-// Function to get random number up to m.
-function random( min, max, precision ) {
-  const value = min + ( Math.random() * ( max - min ) );
-  return precision === undefined ?
-    Math.round( value ):
-    value.toFixed( precision );
-}
-
-function addCommas( string ) {
-  string += '';
-
-  const x = string.split( '.' );
-  let x0 = x[0];
-  const x1 = x.length > 1 ? '.' + x[1] : '';
-
-  const regex = /(\d+)(\d{3})/;
-  while ( regex.test( x0 ) ) {
-    x0 = x0.replace( regex, '$1,$2' );
-  }
-
-  return x0 + x1;
-}
-
-const bells = [];
-let bellsIndex = random( 0, 4 );
-
-const endSound = ( new Audio() ).canPlayType( 'audio/ogg; codecs=vorbis' ) ?
-  new Audio( 'sound/end.ogg' ) :
-  new Audio( 'sound/end.mp3' );
-
-for( let i = 0; i < 10; i++ ) {
-  const index = ( i < 5 ) ? i : i - 5;
-
-  if ( (new Audio() ).canPlayType( 'audio/ogg; codecs=vorbis' ) ) {
-    bells[i] = new Audio( 'sound/_bell' + index + '.ogg' );
-  } else{
-    bells[i] = new Audio( 'sound/_bell' + index + '.mp3' );
-  }
-}
 
 $( document ).ready( () => {
   $( '#main-menu #start' ).click( () => {
@@ -103,24 +63,8 @@ function jsNewGame() {
     });
 }
 
-function jsTriggerBell() {
-  const newIndex = random( 0, 4 );
-  if ( newIndex === bellsIndex ) {
-    jsTriggerBell();
-  } else {
-    bellsIndex = newIndex;
-    if ( bells[ bellsIndex ].paused ) {
-      bells[ bellsIndex ].currentTime = 0;
-      bells[ bellsIndex ].play();
-    } else {
-      bells[ bellsIndex + 5 ].currentTime = 0;
-      bells[ bellsIndex + 5 ].play();
-    }
-  }
-}
-
 function jsUpdateScore( score ) {
-  $( '#hud #score' ).html( addCommas( score ) );
+  $( '#hud #score' ).html( score.toLocaleString() );
 }
 
 function jsIncrementLevel() {
@@ -133,9 +77,6 @@ function jsGameOver( score ) {
 
   $( '#flash' ).show();
 
-  endSound.currentTime = 0;
-  endSound.play();
-
   $( '#hud' ).hide();
   $( '#flash' )
     .delay( 1000 )
@@ -145,7 +86,7 @@ function jsGameOver( score ) {
 
       $( '#gameover-menu #score' )
         .html(
-          addCommas( score ) +
+          score.toLocaleString() +
           '<span id="L">L' + $( '#hud #level span' ).html() + '</span>'
         );
 
@@ -157,18 +98,18 @@ function jsGameOver( score ) {
       } else {
         $( '#gameover-menu #highscore' )
           .html( 'PERSONAL BEST: ' +
-            addCommas( parseInt( localStorage.highScore ) ) +
+            parseInt( localStorage.highScore ).toLocaleString() +
             '<span id="L">L' + localStorage.highLevel + '</span>'
           );
       }
 
       $( '#gameover-menu #nextlevel span' )
         .html(
-          addCommas(
+          (
             pjs.getNextScore(
               parseInt( $( '#hud #level span' ).html() )
             ) + 1000
-          )
+          ).toLocaleString()
         );
 
       $( '#gameover-menu' ).show();
