@@ -46,6 +46,24 @@ button {
   text-decoration: none;
 }
 
+.fade-in {
+  opacity: 1;
+  will-change: opacity;
+  transition: opacity 300ms;
+}
+
+.fade-out {
+  opacity: 0;
+  will-change: opacity;
+  transition: opacity 300ms;
+}
+
+.fade-out--long {
+  opacity: 0;
+  will-change: opacity;
+  transition: opacity 1000ms;
+}
+
 #game-wrapper {
   position: relative;
 }

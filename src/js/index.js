@@ -1,6 +1,5 @@
 import Game from './game';
 
-const DURATION      = 300;
 const LONG_DURATION = 1000;
 
 let firstPlaythrough = true;
@@ -42,9 +41,31 @@ function css( el, props ) {
   return el;
 }
 
+function onTransitionEnd( el, callback ) {
+  if ( el.style.transition !== undefined ) {
+    el.addEventListener( 'transitionend', callback );
+  } else if ( el.style.webkitTransition !== undefined ) {
+    el.addEventListener( 'webkitTransitionEnd', callback );
+  }
+}
+
+// Returns a function that accepts an element and a callback that is called
+// on "transitionend".
+function addClass( className ) {
+  return ( el, callback ) => {
+    el.classList.add( className );
+    onTransitionEnd( el, callback );
+  };
+}
+
+const fadeIn  = addClass( 'fade-in' );
+const fadeOut = addClass( 'fade-out');
+
+const fadeOutLong = addClass( 'fade-out--long');
+
 // Initialize.
 const game = new Game( $( 'canvas' ) );
-$loading.fadeOut( DURATION );
+fadeOut( $loading, () => hide( $loading ) );
 
 $start.addEventListener( 'click', () => {
   if( !playing ) {
@@ -60,25 +81,21 @@ $retry.addEventListener( 'click', () => {
   }
 });
 
-document.addEventListener( 'keydown', () => {
-  if ( $( '#arrow-keys:visible' ).length ) {
-    $arrowKeys.fadeOut( DURATION );
-  }
-});
+document.addEventListener( 'keydown', () => fadeOut( $arrowKeys ));
 
 game.on( 'start', fromProcessing => {
   if ( !fromProcessing ) {
     game.toggle();
   }
 
-  $mainMenuContent.fadeOut( DURATION, () => {
+  fadeOut( $mainMenuContent, () => {
     if ( firstPlaythrough ) {
       firstPlaythrough = false;
-      $arrowKeys.fadeIn( DURATION );
+      fadeIn( $arrowKeys );
     }
 
-    $hud.fadeIn( DURATION );
-    $mainMenu.fadeOut( DURATION );
+    fadeIn( $hud );
+    fadeOut( $mainMenu );
   });
 });
 
@@ -88,16 +105,14 @@ function newGame() {
   $score.textContent = 0;
   $level.textContent = 1;
 
-  $gameOverContent
-    .animate( { opacity: 0 }, DURATION, () => {
-      hide( $gameOverContent );
-      $gameOverMenu
-        .animate( { opacity: 0 }, DURATION, () => {
-          hide( $gameOverMenu );
-          $hud.fadeIn( DURATION );
-          game.toggle();
-        });
+  fadeOut( $gameOverContent, () => {
+    hide( $gameOverContent );
+    fadeOut( $gameOverMenu, () => {
+      hide( $gameOverMenu );
+      fadeIn( $hud );
+      game.toggle();
     });
+  });
 }
 
 game.on( 'score', score => $score.textContent = score.toLocaleString() );
@@ -112,23 +127,23 @@ game.on( 'end', score => {
   show( $flash );
   hide( $hud );
 
-  $flash
-    .delay( LONG_DURATION )
-    .animate( { opacity: 0 }, LONG_DURATION, () => {
+  setTimeout( () => {
+    fadeOutLong( $flash, () => {
       hide( $flash );
-      css( $flash, { 'opacity': 1 } );
+      css( $flash, { opacity: 1 } );
 
       $gameOverScore.innerHTML = score.toLocaleString() +
         '<span id="L">L' + $level.textContent + '</span>';
 
-      if( localStorage.highScore === undefined ||
-          score > parseInt( localStorage.highScore ) ) {
+      const { highScore } = localStorage;
+
+      if( highScore === undefined || score > parseInt( highScore ) ) {
         $gameOverHighScore.textContent = 'NEW RECORD!';
         localStorage.highScore = score;
         localStorage.highLevel = $level.textContent;
       } else {
         $gameOverHighScore.innerHTML = 'PERSONAL BEST: ' +
-          parseInt( localStorage.highScore ).toLocaleString() +
+          parseInt( highScore ).toLocaleString() +
           '<span id="L">L' + localStorage.highLevel + '</span>';
       }
 
@@ -137,10 +152,10 @@ game.on( 'end', score => {
       ).toLocaleString();
 
       show( $gameOverMenu );
-      $gameOverMenu
-        .animate( { opacity: 1 }, DURATION, () => {
-          show( $gameOverContent );
-          $gameOverContent.animate( { opacity: 1 }, DURATION );
-        });
+      fadeIn( $gameOverMenu, () => {
+        show( $gameOverContent );
+        fadeIn( $gameOverContent );
+      });
     });
+  }, LONG_DURATION );
 });
