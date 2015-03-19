@@ -115,6 +115,10 @@ export default class Game extends EventEmitter {
         0, 1, 1
       );
     }
+
+    document.addEventListener( 'mousedown', this.onMouseDown.bind( this ) );
+    document.addEventListener( 'keydown', this.onKeyDown.bind( this ) );
+    document.addEventListener( 'keyup', this.onKeyUp.bind( this ) );
   }
 
   tick() {
@@ -242,11 +246,15 @@ export default class Game extends EventEmitter {
       player.velocity.x = Math.min( vx + 0.5, 0 );
     }
 
-    this.originX += vx;
-    this.originY += vy;
+    this.originX += player.velocity.x;
+    this.originY += player.velocity.y;
 
-    if ( distanceTo( x, y, originX, originY ) > distance ) {
-      const angle = angleTo( player.position, new THREE.Vector3( originX, originY ) ) - Math.PI;
+    if ( distanceTo( x, y, this.originX, this.originY ) > distance ) {
+      const angle = angleTo(
+        player.position,
+        new THREE.Vector3( this.originX, this.originY )
+      ) - Math.PI;
+
       this.originX = x + distance * Math.cos( angle );
       this.originY = y + distance * Math.sin( angle );
     }
