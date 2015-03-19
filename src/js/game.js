@@ -16,11 +16,7 @@ import {
   drawPolygon
 } from './canvas';
 
-const keys = [];
-
 let paused;
-
-let player;
 let game;
 
 function setup() {
@@ -29,34 +25,9 @@ function setup() {
   background( 230 );
 
   game = new Game();
-  player = new Player( game );
   noLoop();
 
   processingIsReady();
-}
-
-function onMouseDown() {
-  player.speed++;
-}
-
-function onKeyDown( event ) {
-  const { keyCode } = event;
-  // Up. W.
-  if ( keyCode === 38 || keyCode === 87 ) { keys[0] = true; }
-  // Down. S.
-  if ( keyCode === 40 || keyCode === 83 ) { keys[1] = true; }
-  // Left. A.
-  if ( keyCode === 37 || keyCode === 65 ) { keys[2] = true; }
-  // Right. D.
-  if ( keyCode === 39 || keyCode === 68 ) { keys[3] = true; }
-}
-
-function onKeyUp( event ) {
-  const { keyCode } = event;
-  if ( keyCode === 38 || keyCode === 87 ) { keys[0] = false; }
-  if ( keyCode === 40 || keyCode === 83 ) { keys[1] = false; }
-  if ( keyCode === 37 || keyCode === 65 ) { keys[2] = false; }
-  if ( keyCode === 39 || keyCode === 68 ) { keys[3] = false; }
 }
 
 function pause() {
@@ -68,11 +39,6 @@ function pause() {
     noLoop();
     paused = true;
   }
-}
-
-function reset() {
-  player.reset( game );
-  game.reset();
 }
 
 function getNextScore( index ) {
@@ -139,6 +105,9 @@ class Game {
     this.originY = this.canvas.height / 2;
 
     this.layers = [];
+
+    this.player = new Player( this );
+    this.keys   = [];
 
     this.drawnPlayer = false;
     this.isGameOver  = false;
@@ -213,6 +182,7 @@ class Game {
     const {
       canvas,
       player,
+      keys,
       speed,
       originX,
       originY
@@ -295,6 +265,7 @@ class Game {
     const {
       canvas,
       ctx,
+      player,
       originX,
       originY
     } = this;
@@ -334,6 +305,7 @@ class Game {
 
   reset() {
     const { canvas } = this;
+    this.player.reset( this );
 
     this.layers = [];
 
@@ -384,5 +356,29 @@ class Game {
       noLoop();
       paused = true;
     }
+  }
+
+  onMouseDown() {
+    this.player.speed++;
+  }
+
+  onKeyDown( event ) {
+    const { keyCode } = event;
+    // Up. W.
+    if ( keyCode === 38 || keyCode === 87 ) { this.keys[0] = true; }
+    // Down. S.
+    if ( keyCode === 40 || keyCode === 83 ) { this.keys[1] = true; }
+    // Left. A.
+    if ( keyCode === 37 || keyCode === 65 ) { this.keys[2] = true; }
+    // Right. D.
+    if ( keyCode === 39 || keyCode === 68 ) { this.keys[3] = true; }
+  }
+
+  onKeyUp( event ) {
+    const { keyCode } = event;
+    if ( keyCode === 38 || keyCode === 87 ) { this.keys[0] = false; }
+    if ( keyCode === 40 || keyCode === 83 ) { this.keys[1] = false; }
+    if ( keyCode === 37 || keyCode === 65 ) { this.keys[2] = false; }
+    if ( keyCode === 39 || keyCode === 68 ) { this.keys[3] = false; }
   }
 }

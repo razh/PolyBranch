@@ -67,7 +67,7 @@ function processingIsReady() {
 }
 
 function jsStartGame( fromProcessing ) {
-  if( !fromProcessing ){
+  if ( !fromProcessing ) {
     pjs.pause();
   }
 
