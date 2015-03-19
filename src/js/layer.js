@@ -63,13 +63,13 @@ export default class Layer {
     }
   }
 
-  updateDist( increment ) {
+  updateDistance( game, player, increment ) {
     this.distance += increment;
     this.easedDistance = easeInExpo( this.distance, this.distance, 0, 1, 1 );
     if ( this.easedDistance >= map( game.speed, 0.0025, 0.008, 0.999, 0.9 ) &&
          this.easedDistance <= map( game.speed, 0.0025, 0.008, 1.02, 1.04 ) ) {
       if ( this.type === 'active' ) {
-        this.tree.checkCollisions();
+        this.tree.checkCollisions( game, player );
       } else if ( this.type === 'level' ) {
         if ( game.speed !== game.speeds[ game.level - 1 ] ) {
           game.speed = game.speeds[ game.level - 1 ];
@@ -93,11 +93,16 @@ export default class Layer {
     this.distance = 0;
     this.easedDistance = 0;
     this.passed = false;
-    this.tree.reset();
+    this.tree.reset( this.numSides );
   }
 
-  render( ctx ) {
-    const { canvas } = ctx;
+  render( game ) {
+    const {
+      canvas,
+      ctx,
+      originX,
+      originY
+    } = game;
 
     if ( this.type === 'active' ) {
       this.tree.render(
@@ -118,7 +123,7 @@ export default class Layer {
           255;
         ctx.fillStyle = color( 100, alpha );
       }
-      ctx.strokeStyle = 'transparet';
+      ctx.strokeStyle = 'transparent';
       shape(
         levelText[ game.level - 2 ],
         lerp( canvas.width  / 2, originX, this.easedDistance ),

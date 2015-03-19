@@ -1,7 +1,9 @@
 import THREE from 'three';
 
 export default class Player {
-  constructor() {
+  constructor( game ) {
+    const { canvas } = game;
+
     this.pos = new THREE.Vector3(
       canvas.width  / 2,
       canvas.height / 2
@@ -15,7 +17,9 @@ export default class Player {
     this.vy = 0;
   }
 
-  reset() {
+  reset( game ) {
+    const { canvas } = game;
+
     this.pos.x = canvas.width / 2;
     this.pos.y = canvas.width / 2;
     this.r = 20;

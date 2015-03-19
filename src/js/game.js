@@ -16,19 +16,7 @@ import {
   drawPolygon
 } from './canvas';
 
-// Processing functions.
-const canvas = document.querySelector( 'canvas' );
-const ctx    = ctx.getContext( '2d' );
-
-function size( width, height ) {
-  canvas.width  = width;
-  canvas.height = height;
-}
-
 const keys = [];
-
-let originX;
-let originY;
 
 let paused;
 
@@ -37,21 +25,23 @@ let game;
 
 function setup() {
   paused = true;
-  size( 800, 800 );
-
-  originX = canvas.width  / 2;
-  originY = canvas.height / 2;
 
   background( 230 );
 
-  player = new Player();
   game = new Game();
+  player = new Player( game );
   noLoop();
 
   processingIsReady();
 }
 
-function draw() {
+function draw( game ) {
+  const {
+    canvas,
+    originX,
+    originY
+  } = game;
+
   if ( keys[0] || keys[1] || keys[2] || keys[3] ) {
     player.hue += game.speed * 100;
     if ( player.hue > 255 ) {
@@ -162,7 +152,7 @@ function pause() {
 }
 
 function newGame() {
-  player.reset();
+  player.reset( game );
   game.newGame();
 }
 
@@ -220,22 +210,32 @@ const branches = [
 // Tree has been moved inside layer as an internal class.
 class Game {
   constructor() {
-    this.score = 0;
+    this.canvas = document.querySelector( 'canvas' );
+    this.ctx    = this.canvas.getContext( '2d' );
+
+    this.canvas.width  = 800;
+    this.canvas.height = 800;
+
+    this.originX = this.canvas.width  / 2;
+    this.originY = this.canvas.height / 2;
+
+    this.score  = 0;
     this.layers = [];
 
     this.drawnPlayer = false;
-    this.isGameOver = false;
+    this.isGameOver  = false;
     this.numBranches = 6;
-    this.level = 1;
+
+    this.level   = 1;
     this.levelUp = 3;
-    this.speed = speeds[0];
+    this.speed   = speeds[0];
 
     // Make layers.
     for ( let i = 0; i < 13; i++ ) {
       this.layers.push(
         new Layer(
           16,
-          canvas.width, canvas.height,
+          this.canvas.width, this.canvas.height,
           'inactive'
         )
       );
@@ -276,7 +276,7 @@ class Game {
           layer.reset( 'active' );
         }
       } else {
-        layer.updateDist( this.speed );
+        layer.updateDistance( this, player, this.speed );
         if ( !this.isGameOver ) {
           if ( layer.easedDistance >= 1 && !this.drawnPlayer ) {
             this.drawPlayer();
@@ -289,6 +289,13 @@ class Game {
   }
 
   drawPlayer() {
+    const {
+      canvas,
+      ctx,
+      originX,
+      originY
+    } = this;
+
     ctx.strokeStyle = 'transparent';
     ctx.fillStyle = color( 0, 100, 100, 200 );
 
@@ -323,6 +330,8 @@ class Game {
   }
 
   newGame() {
+    const { canvas } = this;
+
     this.score = 0;
     this.numBranches = 6;
     this.level = 1;
@@ -330,8 +339,8 @@ class Game {
     this.isGameOver = false;
     this.layers = [];
 
-    originX = canvas.width  / 2;
-    originY = canvas.height / 2;
+    this.originX = canvas.width  / 2;
+    this.originY = canvas.height / 2;
 
     for ( let i = 0; i < 13; i++ ) {
       this.layers.push(

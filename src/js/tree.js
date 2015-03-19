@@ -37,13 +37,10 @@ export default class Tree {
     }
   }
 
-  populateRandomBranches( trunk, sides ) {
-    let side;
-    if ( sides > 0.2 ) {
-      side = 2;
-    } else {
-      side = Math.floor( Math.random() * 2 );
-    }
+  populateRandomBranches( game, trunk, sides ) {
+    const { canvas } = game;
+
+    const side = sides > 0.2 ? 2 : Math.floor( Math.random() * 2 );
 
     const [ v0, v1, v2 ] = trunk.vertices;
 
@@ -140,7 +137,9 @@ export default class Tree {
     }
   }
 
-  reset() {
+  reset( game, numSides) {
+    const { canvas } = game;
+
     this.index = 1;
     this.numBranches = game.numBranches;
 
@@ -151,13 +150,13 @@ export default class Tree {
       branch.vertices[0].y = 0;
     }
 
-    const startVertex = this.startVertex = Math.floor( Math.random() * this.numSides );
+    const startVertex = this.startVertex = Math.floor( Math.random() * numSides );
 
     const halfWidth      = this.layerWidth  / 2;
     const halfHeight     = this.layerHeight / 2;
     const halfRingWeight = this.ringWeight  / 2;
 
-    const angle = PI2 / this.numSides;
+    const angle = PI2 / numSides;
 
     const angleA = angle * startVertex;
     const angleB = angle * ( startVertex - 1 );
@@ -187,21 +186,21 @@ export default class Tree {
     this.populateRandomBranches( branch, 2 );
   }
 
-  checkCollisions() {
+  checkCollisions( game, player ) {
     for ( let i = 0; i < this.numBranches; i++ ) {
       const branch = this.branches[i];
       if ( branch.vertices[0].x && branch.vertices[0].y ) {
-        branch.playerOverlap();
+        branch.playerOverlap( game, player );
       }
     }
   }
 
-  render( ox, oy, w, h, easedDist ) {
+  render( originX, originY, width, height, easedDistance ) {
     for ( let i = 0; i < this.numBranches; i++ ) {
       const branch = this.branches[i];
       if ( branch.vertices[0].x && branch.vertices[0].y ) {
-        branch.setPos( ox, oy, w, h, easedDist );
-        branch.render( ox, oy, w, h, easedDist );
+        branch.setPosition( originX, originY, width, height, easedDistance );
+        branch.render(      originX, originY, width, height, easedDistance );
       }
     }
   }

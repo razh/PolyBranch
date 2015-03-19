@@ -39,7 +39,7 @@ export default class Branch {
     this.alpha = 255;
   }
 
-  setPos( x, y, width, height, easedDistance ) {
+  setPosition( x, y, width, height, easedDistance ) {
     const [ v0,  v1,  v2  ] = this.vertices;
     const [ ev0, ev1, ev2 ] = this.easedVertices;
 
@@ -93,7 +93,7 @@ export default class Branch {
   }
 
   // Collision detection functions.
-  playerOverlap() {
+  playerOverlap( game, player ) {
     const {
       r,
       pos: { x, y }
