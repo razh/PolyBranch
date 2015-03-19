@@ -97,6 +97,7 @@ export default class Game extends EventEmitter {
     for ( let i = 0; i < 13; i++ ) {
       this.layers.push(
         new Layer(
+          this,
           16,
           this.canvas.width, this.canvas.height,
           'inactive'
@@ -124,41 +125,6 @@ export default class Game extends EventEmitter {
     }
   }
 
-  update() {
-    this.drawnPlayer = false;
-    if ( this.isGameOver ) {
-      return;
-    }
-
-    for ( let i = 0; i < this.layers.length; i++ ) {
-      const layer = this.layers[i];
-      if ( layer.easedDistance > 8 && i === this.layers.length - 1 ) {
-        this.layers.unshift( layer );
-        this.layers.pop();
-        this.checkLevel();
-
-        if ( this.levelUp === 0 || this.levelUp === 2 ) {
-          layer.reset( 'inactive' );
-          this.levelUp++;
-        } else if ( this.levelUp === 1 ) {
-          layer.reset( 'level' );
-          this.levelUp++;
-        } else {
-          layer.reset( 'active' );
-        }
-      } else {
-        layer.updateDistance( this );
-        if ( !this.isGameOver ) {
-          if ( layer.easedDistance >= 1 && !this.drawnPlayer ) {
-            this.drawPlayer();
-          }
-
-          layer.render();
-        }
-      }
-    }
-  }
-
   toggle() {
     if ( !this.running ) {
       this.running = true;
@@ -166,6 +132,40 @@ export default class Game extends EventEmitter {
       this.tick();
     } else {
       this.running = false;
+    }
+  }
+
+  update() {
+    this.drawnPlayer = false;
+
+    for ( let i = 0; i < this.layers.length; i++ ) {
+      if ( !this.isGameOver ) {
+        const layer = this.layers[i];
+        if ( layer.easedDistance > 8 && i === this.layers.length - 1 ) {
+          this.layers.unshift( layer );
+          this.layers.pop();
+          this.checkLevel();
+
+          if ( this.levelUp === 0 || this.levelUp === 2 ) {
+            layer.reset( this, 'inactive' );
+            this.levelUp++;
+          } else if ( this.levelUp === 1 ) {
+            layer.reset( this, 'level' );
+            this.levelUp++;
+          } else {
+            layer.reset( this, 'active' );
+          }
+        } else {
+          layer.updateDistance( this );
+          if ( !this.isGameOver ) {
+            if ( layer.easedDistance >= 1 && !this.drawnPlayer ) {
+              this.drawPlayer();
+            }
+
+            layer.render( this );
+          }
+        }
+      }
     }
   }
 
@@ -268,6 +268,7 @@ export default class Game extends EventEmitter {
     ctx.fillStyle = color( 0, 100, 100, 200 );
 
     circle(
+      ctx,
       canvas.width  / 2,
       canvas.height / 2,
       player.radius * 2
@@ -287,7 +288,7 @@ export default class Game extends EventEmitter {
   }
 
   checkLevel() {
-    for ( let i = scores.length - 1; i >= 0; i++ ) {
+    for ( let i = scores.length - 1; i >= 0; i-- ) {
       if ( this.score > scores[i] && this.level < ( i + 1 ) ) {
         this.level       = i + 1;
         this.branchCount = branches[i];
@@ -320,6 +321,7 @@ export default class Game extends EventEmitter {
 
     for ( let i = 0; i < 13; i++ ) {
       this.layers.push(
+        this,
         new Layer(
           16,
           canvas.width, canvas.height,
@@ -348,7 +350,7 @@ export default class Game extends EventEmitter {
       this.isGameOver = true;
       this.background = color( 0, 0, 255 );
       for ( let i = 0; i < this.layers.length; i++ ) {
-        this.layers[i].render();
+        this.layers[i].render( this );
       }
 
       this.running = false;

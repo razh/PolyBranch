@@ -1,9 +1,9 @@
 import { PI2 } from './math';
 
 // HSB values are in the [0, 255] range.
-function hsbaToHsla( h = 0, s = 0, b = 0, a = 1 ) {
+function hsbaToHsla( h = 0, s = 0, b = 0, a = 255 ) {
   if ( !b ) {
-    return 'hsla(0, 0%, 0%, ' + a + ')';
+    return 'hsla(0, 0%, 0%, ' + ( a / 255 )+ ')';
   }
 
   s /= 255;
@@ -65,4 +65,16 @@ export function drawPolygon( ctx, cx, cy, r, sides, weight, color ) {
   }
 
   ctx.closePath();
+}
+
+export function drawText( ctx, text, x, y, scale ) {
+  ctx.save();
+  ctx.translate( x, y );
+  ctx.scale( scale, scale );
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText( text, 0, 0 );
+
+  ctx.restore();
 }

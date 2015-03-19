@@ -12,11 +12,12 @@ import {
 
 import {
   color,
-  drawPolygon
+  drawPolygon,
+  drawText
 } from './canvas';
 
 export default class Layer {
-  constructor( sideCount, width, height, type ) {
+  constructor( game, sideCount, width, height, type ) {
     this.sideCount   = sideCount;
     this.layerWidth  = width;
     this.layerHeight = height;
@@ -47,7 +48,9 @@ export default class Layer {
       const bx = halfWidth  + ( halfWidth  - halfRingWeight ) * Math.cos( angleB );
       const by = halfHeight + ( halfHeight - halfRingWeight ) * Math.sin( angleB );
 
-      this.tree = new Tree( 11,
+      this.tree = new Tree(
+        game,
+        11,
         new Branch(
           new THREE.Vector3( ax, ay ),
           new THREE.Vector3( bx, by ),
@@ -59,7 +62,7 @@ export default class Layer {
       );
     }
     else {
-      this.tree = new Tree();
+      this.tree = new Tree( game );
     }
   }
 
@@ -83,14 +86,14 @@ export default class Layer {
     }
   }
 
-  reset( type ) {
+  reset( game, type ) {
     this.distance      = 0;
     this.easedDistance = 0;
 
     this.passed = false;
     this.type   = type;
 
-    this.tree.reset( this.sideCount );
+    this.tree.reset( game, this.sideCount );
   }
 
   render( game ) {
@@ -103,6 +106,7 @@ export default class Layer {
 
     if ( this.type === 'active' ) {
       this.tree.render(
+        ctx,
         lerp( canvas.width  / 2, originX, this.easedDistance ),
         lerp( canvas.height / 2, originY, this.easedDistance ),
         this.layerWidth  * this.easedDistance,
@@ -121,16 +125,18 @@ export default class Layer {
       }
 
       ctx.strokeStyle = 'transparent';
-      shape(
-        levelText[ game.level - 2 ],
+
+      drawText(
+        ctx,
+        game.level,
         lerp( canvas.width  / 2, originX, this.easedDistance ),
         lerp( canvas.height / 2, originY, this.easedDistance ),
-        levelText[ game.level - 2 ].width  * this.easedDistance,
-        levelText[ game.level - 2 ].height * this.easedDistance
+        this.easedDistance
       );
     }
 
     drawPolygon(
+      ctx,
       lerp( canvas.width  / 2, originX, this.easedDistance ),
       lerp( canvas.height / 2, originY, this.easedDistance ),
       ( this.layerWidth - this.ringWeight ) * this.easedDistance / 2,

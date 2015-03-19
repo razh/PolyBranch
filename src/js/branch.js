@@ -33,10 +33,10 @@ export default class Branch {
     this.minBrightness = 50;
     this.maxBrightness = 90;
 
-    this.hue = 0;
+    this.hue        = 0;
     this.saturation = 0;
     this.brightness = random( this.minBrightness, this.maxBrightness );
-    this.alpha = 255;
+    this.alpha      = 255;
   }
 
   setPosition( x, y, width, height, easedDistance ) {

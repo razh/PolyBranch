@@ -118,7 +118,7 @@ function newGame() {
 game.on( 'score', score => $score.textContent = score.toLocaleString() );
 
 game.on( 'level', () =>
-  $level.textContent( parseInt( $level.textContent ) + 1 )
+  $level.textContent = parseInt( $level.textContent ) + 1
 );
 
 game.on( 'end', score => {

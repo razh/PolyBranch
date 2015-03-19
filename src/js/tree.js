@@ -12,7 +12,7 @@ import {
 } from './math';
 
 export default class Tree {
-  constructor( branchCount, trunk ) {
+  constructor( game, branchCount, trunk ) {
     this.branchCount = branchCount;
     this.branches    = [];
 
@@ -24,7 +24,7 @@ export default class Tree {
     this.trunkLength = 0;
 
     if ( trunk ) {
-      const [ v0, v1, v2 ] = trunk;
+      const [ v0, v1, v2 ] = trunk.vertices;
 
       this.branches[ this.index ] = trunk;
       this.index++;
@@ -34,7 +34,7 @@ export default class Tree {
         v2.x, v2.y
       );
 
-      this.populateRandomBranches( this.branches[0], Math.random() );
+      this.populateRandomBranches( game, this.branches[0], Math.random() );
     }
   }
 
@@ -69,6 +69,7 @@ export default class Tree {
 
           this.index++;
           this.populateRandomBranches(
+            game,
             this.branches[ this.index - 1 ],
             Math.random()
           );
@@ -88,7 +89,7 @@ export default class Tree {
             halfHeight
           ) < halfWidth
         ) {
-          this.populateRandomBranches( trunk, 1 );
+          this.populateRandomBranches( game, trunk, 1 );
         } // Otherwise, don't do it.
       }
     }
@@ -114,6 +115,7 @@ export default class Tree {
 
           this.index++;
           this.populateRandomBranches(
+            game,
             this.branches[ this.index - 1 ],
             Math.random()
           );
@@ -132,7 +134,7 @@ export default class Tree {
             halfHeight
           ) < halfWidth
         ) {
-          this.populateRandomBranches( trunk, 0 );
+          this.populateRandomBranches( game, trunk, 0 );
         }
       }
     }
@@ -184,7 +186,7 @@ export default class Tree {
       v2.x, v2.y
     );
 
-    this.populateRandomBranches( branch, 2 );
+    this.populateRandomBranches( game, branch, 2 );
   }
 
   checkCollisions( game ) {
@@ -196,12 +198,12 @@ export default class Tree {
     }
   }
 
-  render( originX, originY, width, height, easedDistance ) {
+  render( ctx, originX, originY, width, height, easedDistance ) {
     for ( let i = 0; i < this.branchCount; i++ ) {
       const branch = this.branches[i];
       if ( branch.vertices[0].x && branch.vertices[0].y ) {
         branch.setPosition( originX, originY, width, height, easedDistance );
-        branch.render(      originX, originY, width, height, easedDistance );
+        branch.render( ctx, originX, originY, width, height, easedDistance );
       }
     }
   }
