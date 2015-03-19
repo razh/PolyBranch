@@ -27,10 +27,7 @@ h1,
 h2,
 h3,
 h4,
-.button,
-.button:link,
-.button:active,
-.button:visited {
+button {
   color: #333;
   font-family: 'Wire One', sans-serif;
   letter-spacing: 1px;
@@ -39,6 +36,9 @@ h4,
 
 .button {
   color: #333;
+  font-size: 50px;
+  line-height: 1em;
+  text-decoration: none;
 }
 
 .button:hover {
@@ -63,7 +63,7 @@ h4,
   text-align: center;
 }
 
-#arrowkeys {
+#arrow-keys {
   position: absolute;
   display: none;
   width: 338px;
@@ -84,14 +84,14 @@ h4,
   line-height: 1em;
 }
 
-#gameover-menu {
+#game-over-menu {
   display: none;
   background: rgba( 100, 100, 100, 0.2 );
   opacity: 0;
   text-align: center;
 }
 
-#gameover-menu .content {
+#game-over-menu .content {
   display: none;
   margin: 0 auto;
   width: 400px;
@@ -100,29 +100,29 @@ h4,
   opacity: 0;
 }
 
-#gameover-menu #score {
+#game-over-menu #score {
   margin-bottom: 0;
   padding-top: 20px;
   font-size: 120px;
   line-height: 1em;
 }
 
-#gameover-menu #score #L {
+#game-over-menu #score #L {
   font-size: 60px;
 }
 
-#gameover-menu #highscore {
+#game-over-menu #high-score {
   margin-top: -20px;
   margin-bottom: 230px;
   font-size: 30px;
   line-height: 1em;
 }
 
-#gameover-menu #highscore #L {
+#game-over-menu #high-score #L {
   font-size: 20px;
 }
 
-#gameover-menu #nextlevel {
+#game-over-menu #next-level {
   font-size: 20px;
   line-height: 1em;
 }
@@ -147,12 +147,6 @@ h4,
   margin: 20px 20px 0 0;
   font-size: 70px;
   line-height: 1em;
-}
-
-.button {
-  font-size: 50px;
-  line-height: 1em;
-  text-decoration: none;
 }
 
 .overlay {
