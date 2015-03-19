@@ -93,7 +93,7 @@ export default class Layer {
     this.passed = false;
     this.type   = type;
 
-    this.tree.reset( game, this.sideCount );
+    this.tree.reset( game, this, this.sideCount );
   }
 
   render( game ) {

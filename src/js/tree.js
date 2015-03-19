@@ -140,7 +140,7 @@ export default class Tree {
     }
   }
 
-  reset( game, sideCount ) {
+  reset( game, layer, sideCount ) {
     const { canvas } = game;
 
     this.index = 1;
@@ -155,9 +155,9 @@ export default class Tree {
 
     const startVertex = this.startVertex = Math.floor( Math.random() * sideCount );
 
-    const halfWidth      = this.layerWidth  / 2;
-    const halfHeight     = this.layerHeight / 2;
-    const halfRingWeight = this.ringWeight  / 2;
+    const halfWidth      = layer.layerWidth  / 2;
+    const halfHeight     = layer.layerHeight / 2;
+    const halfRingWeight = layer.ringWeight  / 2;
 
     const angle = PI2 / sideCount;
 

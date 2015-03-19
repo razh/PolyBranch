@@ -76,16 +76,17 @@ export default class Branch {
       );
     } else if ( easedDistance <= 1.02 ) {
       ctx.strokeStyle = color( 0, alpha );
-      ctx.fillSTyle   = color( hue, saturation, brightness, alpha );
+      ctx.fillStyle   = color( hue, saturation, brightness, alpha );
     } else {
       ctx.strokeStyle = color( 255, alpha );
-      ctx.fillSTyle   = color( hue, saturation, 300 - brightness, alpha );
+      ctx.fillStyle   = color( hue, saturation, 300 - brightness, alpha );
     }
 
     ctx.lineWidth = 0.4;
 
     const [ ev0, ev1, ev2 ] = this.easedVertices;
     triangle(
+      ctx,
       ev0.x, ev0.y,
       ev1.x, ev1.y,
       ev2.x, ev2.y
