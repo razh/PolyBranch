@@ -6,20 +6,23 @@ function hsbaToHsla( h = 0, s = 0, b = 0, a = 255 ) {
     return 'hsla(0, 0%, 0%, ' + ( a / 255 )+ ')';
   }
 
+  h /= 255;
   s /= 255;
   b /= 255;
 
   const l = b / 2 * ( 2 - s );
-  s = ( b / s ) / ( l < 0.5 ? l * 2 : 1 - l * 2 );
-  return `hsla(${ h }, ${ 255 * s }%, ${ 255 * l }%, ${ a / 255 })`;
+  s = ( b * s ) / ( l <= 0.5 ? l * 2 : 1 - l * 2 );
+  return `hsla(${ 360 * h }, ${ 100 * s }%, ${ 100 * l }%, ${ a / 255 })`;
 }
 
 export function color( h, s, b, a ) {
   if ( arguments.length === 1 ) {
-    return hsbaToHsla( h, h, h );
+    // h is grayscale.
+    return hsbaToHsla( 0, 0, h );
   } else if ( arguments.length === 2 ) {
+    // h is grayscale.
     // s is alpha.
-    return hsbaToHsla( h, h, h, s );
+    return hsbaToHsla( 0, 0, h, s );
   } else if ( arguments.length === 3 ) {
     return hsbaToHsla( h, s, b );
   }
@@ -65,6 +68,9 @@ export function drawPolygon( ctx, cx, cy, r, sides, weight, color ) {
   }
 
   ctx.closePath();
+
+  ctx.fill();
+  ctx.stroke();
 }
 
 export function drawText( ctx, text, x, y, scale ) {

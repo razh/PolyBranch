@@ -55,7 +55,7 @@ export default class Branch {
     ev2.y = y + v2.y * easedDistance;
   }
 
-  render( ctx, x, y, w, h, easedDistance ) {
+  render( ctx, x, y, width, height, easedDistance ) {
     const {
       hue,
       saturation,
