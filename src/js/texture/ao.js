@@ -1,5 +1,6 @@
 import sobel from './sobel';
 import grayscale from './grayscale';
+import createImageData from './image-data';
 
 export default function ao( imageData ) {
   const { data, width, height } = imageData;
@@ -11,13 +12,8 @@ export default function ao( imageData ) {
   const sobelData     = sobelImageData.data;
   const grayscaleData = grayscaleImageData.data;
 
-  const output = {
-    width,
-    height,
-    data: new Uint8ClampedArray( 4 * width * height )
-  };
-
-  const dst = output.data;
+  const output = createImageData( width, height );
+  const dst    = output.data;
 
   for ( let i = 0; i < sobelData.length && i < grayscaleData.length; i += 4 ) {
     let value = sobelData[ i ] + sobelData[ i + 1 ] - grayscaleData[ i ] + 255;
