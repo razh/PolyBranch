@@ -116,16 +116,22 @@ export default class Game extends EventEmitter {
       );
     }
 
-    document.addEventListener( 'mousedown', this.onMouseDown.bind( this ) );
-    document.addEventListener( 'keydown', this.onKeyDown.bind( this ) );
-    document.addEventListener( 'keyup', this.onKeyUp.bind( this ) );
+    this.tick = this.tick.bind( this );
+
+    this.onMouseDown = this.onMouseDown.bind( this );
+    this.onKeyDown = this.onKeyDown.bind( this );
+    this.onKeyUp = this.onKeyUp.bind( this );
+
+    document.addEventListener( 'mousedown', this.onMouseDown );
+    document.addEventListener( 'keydown', this.onKeyDown );
+    document.addEventListener( 'keyup', this.onKeyUp );
   }
 
   tick() {
     this.draw();
 
     if ( this.running ) {
-      requestAnimationFrame( this.tick.bind( this ) );
+      requestAnimationFrame( this.tick );
     }
   }
 
