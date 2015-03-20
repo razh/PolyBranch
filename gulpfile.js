@@ -33,28 +33,32 @@ gulp.task('browser-sync', function() {
   });
 });
 
-gulp.task('js', function() {
-  var bundler = watchify(browserify(SOURCE_DIR + '/js/index.js',
-    _.assign({
-      debug: true
-    }, watchify.args)));
+function jsTask(name, src, dest) {
+  return gulp.task(name, function() {
+    var bundler = watchify(browserify(SOURCE_DIR + src,
+      _.assign({
+        debug: true
+      }, watchify.args)));
 
-  bundler.transform(babelify);
+    bundler.transform(babelify);
 
-  function rebundle() {
-    return bundler.bundle()
-      .on('error', onError)
-      .pipe(source('bundle.js'))
-      .pipe(gulp.dest(BUILD_DIR))
-      .pipe(browserSync.reload({stream: true, once: true}));
-  }
+    function rebundle() {
+      return bundler.bundle()
+        .on('error', onError)
+        .pipe(source(dest))
+        .pipe(gulp.dest(BUILD_DIR))
+        .pipe(browserSync.reload({stream: true, once: true}));
+    }
 
-  bundler
-    .on('log', util.log)
-    .on('update', rebundle);
+    bundler
+      .on('log', util.log)
+      .on('update', rebundle);
 
-  return rebundle();
-});
+    return rebundle();
+  });
+}
+
+jsTask('js', '/js/index.js', 'bundle.js');
 
 gulp.task('html', function() {
   return gulp.src(SOURCE_DIR + '/*.html')
