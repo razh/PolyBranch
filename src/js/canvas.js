@@ -2,8 +2,9 @@ import { PI2 } from './math';
 
 // HSB values are in the [0, 255] range.
 function hsbaToHsla( h = 0, s = 0, b = 0, a = 255 ) {
+  a /= 255;
   if ( !b ) {
-    return 'hsla(0, 0%, 0%, ' + ( a / 255 )+ ')';
+    return 'hsla(0, 0%, 0%, ' + a + ')';
   }
 
   h /= 255;
@@ -12,7 +13,7 @@ function hsbaToHsla( h = 0, s = 0, b = 0, a = 255 ) {
 
   const l = b / 2 * ( 2 - s );
   s = ( b * s ) / ( l <= 0.5 ? l * 2 : 1 - l * 2 );
-  return `hsla(${ 360 * h }, ${ 100 * s }%, ${ 100 * l }%, ${ a / 255 })`;
+  return `hsla(${ 360 * h }, ${ 100 * s }%, ${ 100 * l }%, ${ a })`;
 }
 
 export function color( h, s, b, a ) {

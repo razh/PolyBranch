@@ -43,13 +43,13 @@ export function pointInTriangle( x, y, x0, y0, x1, y1, x2, y2 ) {
   const b1 = sign( x, y, x1, y1, x2, y2 ) < 0;
   const b2 = sign( x, y, x2, y2, x0, y0 ) < 0;
 
-  return ( ( b0 === b1 ) && ( b1 === b2 ) );
+  return b0 === b1 && b1 === b2;
 }
 
 // Thanks, Casey!! :)
 // Code adapted from Paul Bourke:
 // http://local.wasp.uwa.edu.au/~pbourke/geometry/sphereline/raysphere.c
-export function circleLineIntersection( cx, cy, r, x0, y0, x1, y1 ) {
+export function circleSegmentIntersection( cx, cy, r, x0, y0, x1, y1 ) {
   const dx = x1 - x0;
   const dy = y1 - y0;
 
@@ -63,12 +63,25 @@ export function circleLineIntersection( cx, cy, r, x0, y0, x1, y1 ) {
   const c = ( x0 * x0 ) + ( y0 * y0 ) - ( r * r );
 
   // Compute discriminant.
-  const d = b * b - 4 * a * c;
+  let d = b * b - 4 * a * c;
+
   // No intersection.
   if ( d < 0 ) {
     return false;
   }
 
-  // One or two intersections.
-  return true;
+  // One possible intersection.
+  if ( !d ) {
+    const t = -b / ( 2 * a );
+    return 0 <= t && t <= 1;
+  }
+
+  d = Math.sqrt( d );
+
+  // Two possible intersections.
+  const t0 = ( -b - d ) / ( 2 * a );
+  const t1 = ( -b + d ) / ( 2 * a );
+
+  return 0 <= t0 && t0 <= 1 ||
+         0 <= t1 && t1 <= 1;
 }

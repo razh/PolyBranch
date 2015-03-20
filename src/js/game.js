@@ -279,7 +279,7 @@ export default class Game extends EventEmitter {
       ctx,
       canvas.width  / 2,
       canvas.height / 2,
-      player.radius * 2
+      player.radius
     );
 
     drawPolygon(

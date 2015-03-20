@@ -1,7 +1,7 @@
 import THREE from 'three';
 
 import {
-  circleLineIntersection,
+  circleSegmentIntersection,
   distanceTo,
   map,
   pointInTriangle,
@@ -118,9 +118,9 @@ export default class Branch {
         x1, y1,
         x0, y0
       ) ||
-      circleLineIntersection( x, y, radius, x0, y0, x1, y1 ) ||
-      circleLineIntersection( x, y, radius, x1, y1, x2, y2 ) ||
-      circleLineIntersection( x, y, radius, x2, y2, x0, y0 )
+      circleSegmentIntersection( x, y, radius, x0, y0, x1, y1 ) ||
+      circleSegmentIntersection( x, y, radius, x1, y1, x2, y2 ) ||
+      circleSegmentIntersection( x, y, radius, x2, y2, x0, y0 )
     ) {
       this.brightness = this.saturation = 100;
       game.end();
