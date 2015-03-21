@@ -1,5 +1,10 @@
+import createImageData from './image-data';
+
 export function grayscale( imageData ) {
-  const { data } = imageData;
+  const { data, width, height } = imageData;
+
+  const output = createImageData( width, height );
+  const dst    = output.data;
 
   for ( let i = 0, il = data.length; i < il; i += 4 ) {
     const r = data[ i     ];
@@ -8,8 +13,8 @@ export function grayscale( imageData ) {
 
     // CIE RGB luminance.
     const value = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    data[ i ] = data[ i + 1 ] = data[ i + 2 ] = value;
+    dst[ i ] = dst[ i + 1 ] = dst[ i + 2 ] = value;
   }
 
-  return imageData;
+  return output;
 }
