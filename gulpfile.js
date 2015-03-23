@@ -59,6 +59,7 @@ function jsTask(name, src, dest) {
 }
 
 jsTask('js', '/js/index.js', 'bundle.js');
+jsTask('tests', '/js/tests/index.js', 'tests.js');
 
 gulp.task('html', function() {
   return gulp.src(SOURCE_DIR + '/*.html')
@@ -81,7 +82,7 @@ gulp.task('clean', del.bind(null, [BUILD_DIR]));
 
 gulp.task('default', ['clean'], function(cb) {
   return runSequence(
-    ['html', 'css', 'js'],
+    ['html', 'css', 'js', 'tests'],
     ['browser-sync', 'watch'],
     cb
   );
