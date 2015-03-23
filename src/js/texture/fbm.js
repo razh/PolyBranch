@@ -10,12 +10,14 @@ export default function fbm( width, height, noise, {
   const imageData = createImageData( width, height );
   const data      = imageData.data;
 
+  let index = 0;
   for ( let i = 0, il = data.length; i < il; i += 4 ) {
     let frequency = 1 / period;
     let amplitude = gain;
 
-    let x = i % width;
-    let y = Math.floor( i / width );
+    let x = index % width;
+    let y = Math.floor( index / width );
+    index++;
 
     let sum = 0;
 
