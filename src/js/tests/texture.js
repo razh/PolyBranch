@@ -38,7 +38,7 @@ function noiseTest() {
 
   ctx.putImageData( imageData, 0, 0 );
 
-  return ctx;
+  return { canvas, ctx };
 }
 
 function aoTest( ctx ) {
@@ -51,20 +51,13 @@ function aoTest( ctx ) {
   });
   console.timeEnd( 'ao' );
 
-  const { ctx: aoCtx } = createCanvas( canvas.width, canvas.height );
+  const {
+    canvas: aoCanvas,
+    ctx:    aoCtx
+  } = createCanvas( canvas.width, canvas.height );
   aoCtx.putImageData( aoImageData, 0, 0 );
-}
 
-function specularTest( ctx ) {
-  const { canvas } = ctx;
-  const imageData = ctx.getImageData( 0, 0, canvas.width, canvas.height );
-
-  console.time( 'specular' );
-  const specularImageData = specular( imageData );
-  console.timeEnd( 'specular' );
-
-  const { ctx: specularCtx } = createCanvas( canvas.width, canvas.height );
-  specularCtx.putImageData( specularImageData, 0, 0 );
+  return aoCanvas;
 }
 
 function displacementTest( ctx ) {
@@ -78,9 +71,14 @@ function displacementTest( ctx ) {
   } = displacement( imageData );
   console.timeEnd( 'displacement' );
 
-  const { ctx: displacementCtx } = createCanvas( canvas.width, canvas.height );
+  const {
+    canvas: displacementCanvas,
+    ctx:    displacementCtx
+  } = createCanvas( canvas.width, canvas.height );
   displacementCtx.putImageData( displacementImageData, 0, 0 );
   console.log( 'displacement bias:', bias );
+
+  return displacementCanvas;
 }
 
 function normalTest( ctx ) {
@@ -91,14 +89,114 @@ function normalTest( ctx ) {
   const normalImageData = normal( imageData );
   console.timeEnd( 'normal' );
 
-  const { ctx: normalCtx } = createCanvas( canvas.width, canvas.height );
+  const {
+    canvas: normalCanvas,
+    ctx:    normalCtx
+  } = createCanvas( canvas.width, canvas.height );
   normalCtx.putImageData( normalImageData, 0, 0 );
+
+  return normalCanvas;
+}
+
+function specularTest( ctx ) {
+  const { canvas } = ctx;
+  const imageData = ctx.getImageData( 0, 0, canvas.width, canvas.height );
+
+  console.time( 'specular' );
+  const specularImageData = specular( imageData );
+  console.timeEnd( 'specular' );
+
+  const {
+    canvas: specularCanvas,
+    ctx:    specularCtx
+  } = createCanvas( canvas.width, canvas.height );
+  specularCtx.putImageData( specularImageData, 0, 0 );
+
+  return specularCanvas;
+}
+
+
+function viewer({
+  width  = 512,
+  height = 512,
+  texture,
+  aoTexture,
+  displacementTexture,
+  normalTexture,
+  specularTexture
+}) {
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio( window.devicePixelRatio );
+  renderer.setSize( width, height );
+  renderer.shadowMapEnabled = true;
+  document.body.appendChild( renderer.domElement );
+
+  const scene = new THREE.Scene();
+
+  const camera = new THREE.PerspectiveCamera( 60, width / height );
+  camera.position.set( 0, 0, 3 );
+  scene.add( camera );
+
+  const material = new THREE.MeshPhongMaterial({
+    map:         texture,
+    lightMap:    aoTexture,
+    normalMap:   normalTexture,
+    specularMap: specularTexture
+  });
+
+  const sphereGeometry = new THREE.SphereGeometry( 1, 32, 24 );
+  const sphereMesh = new THREE.Mesh( sphereGeometry, material );
+  sphereMesh.castShadow    = true;
+  sphereMesh.receiveShadow = true;
+  scene.add( sphereMesh );
+
+  const light = new THREE.DirectionalLight( 0xffffff, 1.5 );
+  light.position.set( 3, 3, 3 );
+  light.castShadow = true;
+  scene.add( light );
+
+  renderer.domElement.addEventListener( 'mousemove', event => {
+    const rect = renderer.domElement.getBoundingClientRect();
+
+    const x = ( ( event.clientX - rect.left ) / rect.width ) - 0.5;
+    const y = 0.5 - ( ( event.clientY - rect.top ) / rect.height );
+
+    light.position.x = 6 * x;
+    light.position.y = 6 * y;
+
+    renderer.render( scene, camera );
+  });
+
+  renderer.render( scene, camera );
+}
+
+function createTexture( canvas ) {
+  const texture = new THREE.Texture( canvas );
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.anisotropy = 2;
+  texture.needsUpdate = true;
+  return texture;
 }
 
 export default function() {
-  const noiseCtx = noiseTest();
-  aoTest( noiseCtx );
-  specularTest( noiseCtx );
-  displacementTest( noiseCtx );
-  normalTest( noiseCtx );
+  const {
+    canvas: noiseCanvas,
+    ctx:    noiseCtx
+  } = noiseTest();
+
+  // Create textures.
+  const texture             = createTexture( noiseCanvas );
+  const aoTexture           = createTexture( aoTest( noiseCtx ) );
+  const displacementTexture = createTexture( displacementTest( noiseCtx ) );
+  const normalTexture       = createTexture( normalTest( noiseCtx ) );
+  const specularTexture     = createTexture( specularTest( noiseCtx ) );
+
+  viewer({
+    texture,
+    aoTexture,
+    displacementTexture,
+    normalTexture,
+    specularTexture
+  });
 }
