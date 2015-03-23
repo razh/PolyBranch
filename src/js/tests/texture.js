@@ -5,6 +5,7 @@ import ao from './../texture/ao';
 import displacement from './../texture/displacement';
 import grayscale from './../texture/grayscale';
 import fbm from './../texture/fbm';
+import normal from './../texture/normal';
 import sobel from './../texture/sobel';
 import specular from './../texture/specular';
 
@@ -82,9 +83,22 @@ function displacementTest( ctx ) {
   console.log( 'displacement bias:', bias );
 }
 
+function normalTest( ctx ) {
+  const { canvas } = ctx;
+  const imageData = ctx.getImageData( 0, 0, canvas.width, canvas.height );
+
+  console.time( 'normal' );
+  const normalImageData = normal( imageData );
+  console.timeEnd( 'normal' );
+
+  const { ctx: normalCtx } = createCanvas( canvas.width, canvas.height );
+  normalCtx.putImageData( normalImageData, 0, 0 );
+}
+
 export default function() {
   const noiseCtx = noiseTest();
   aoTest( noiseCtx );
   specularTest( noiseCtx );
   displacementTest( noiseCtx );
+  normalTest( noiseCtx );
 }
