@@ -38,7 +38,7 @@ function noiseTest() {
 
   ctx.putImageData( imageData, 0, 0 );
 
-  return { canvas, ctx };
+  return canvas;
 }
 
 function aoTest( ctx ) {
@@ -170,8 +170,8 @@ function viewer({
   renderer.render( scene, camera );
 }
 
-function createTexture( canvas ) {
-  const texture = new THREE.Texture( canvas );
+function createTexture( image ) {
+  const texture = new THREE.Texture( image );
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.anisotropy = 2;
@@ -179,24 +179,30 @@ function createTexture( canvas ) {
   return texture;
 }
 
-export default function() {
-  const {
-    canvas: noiseCanvas,
-    ctx:    noiseCtx
-  } = noiseTest();
+function createTextures( image ) {
+  const canvas = document.createElement( 'canvas' );
+  const ctx    = canvas.getContext( '2d' );
 
-  // Create textures.
-  const texture             = createTexture( noiseCanvas );
-  const aoTexture           = createTexture( aoTest( noiseCtx ) );
-  const displacementTexture = createTexture( displacementTest( noiseCtx ) );
-  const normalTexture       = createTexture( normalTest( noiseCtx ) );
-  const specularTexture     = createTexture( specularTest( noiseCtx ) );
+  canvas.width  = image.naturalWidth  || image.width;
+  canvas.height = image.naturalHeight || image.height;
 
-  viewer({
+  ctx.drawImage( image, 0, 0 );
+
+  const texture             = createTexture( image );
+  const aoTexture           = createTexture( aoTest( ctx ) );
+  const displacementTexture = createTexture( displacementTest( ctx ) );
+  const normalTexture       = createTexture( normalTest( ctx ) );
+  const specularTexture     = createTexture( specularTest( ctx ) );
+
+  return {
     texture,
     aoTexture,
     displacementTexture,
     normalTexture,
     specularTexture
-  });
+  };
+}
+
+export default function() {
+  viewer( createTextures( noiseTest() ) );
 }
