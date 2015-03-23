@@ -1,5 +1,6 @@
 import stackblur from 'stackblur';
-import createImageData from 'image-data';
+
+import createImageData from './image-data';
 
 export function blur( imageData, radius ) {
   const { data, width, height } = imageData;
@@ -7,9 +8,9 @@ export function blur( imageData, radius ) {
 }
 
 export function sharpen( imageData, radius ) {
-  const { data } = imageData;
+  const { data, width, height } = imageData;
 
-  const gaussianImageData = createImageData();
+  const gaussianImageData = createImageData( width, height );
   const gaussianData = gaussianImageData.data;
   gaussianData.set( data );
 

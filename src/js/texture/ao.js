@@ -1,7 +1,7 @@
 import sobel from './sobel';
 import grayscale from './grayscale';
 import createImageData from './image-data';
-import { blur, sharpen } from './gaussian';
+import { blur, sharpen } from './gaussian-blur';
 
 export default function ao(
   imageData,
