@@ -2,6 +2,7 @@ import THREE from 'three';
 import SimplexNoise from 'simplex-noise';
 
 import ao from './../texture/ao';
+import displacement from './../texture/displacement';
 import grayscale from './../texture/grayscale';
 import fbm from './../texture/fbm';
 import sobel from './../texture/sobel';
@@ -65,8 +66,25 @@ function specularTest( ctx ) {
   specularCtx.putImageData( specularImageData, 0, 0 );
 }
 
+function displacementTest( ctx ) {
+  const { canvas } = ctx;
+  const imageData = ctx.getImageData( 0, 0, canvas.width, canvas.height );
+
+  console.time( 'displacement' );
+  const {
+    imageData: displacementImageData,
+    bias
+  } = displacement( imageData );
+  console.timeEnd( 'displacement' );
+
+  const { ctx: displacementCtx } = createCanvas( canvas.width, canvas.height );
+  displacementCtx.putImageData( displacementImageData, 0, 0 );
+  console.log( 'displacement bias:', bias );
+}
+
 export default function() {
   const noiseCtx = noiseTest();
   aoTest( noiseCtx );
   specularTest( noiseCtx );
+  displacementTest( noiseCtx );
 }
