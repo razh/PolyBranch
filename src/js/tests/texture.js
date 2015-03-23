@@ -10,13 +10,19 @@ import specular from './../texture/specular';
 const WIDTH  = 256;
 const HEIGHT = 256;
 
-function noiseTest() {
+function createCanvas( width, height ) {
   const canvas = document.createElement( 'canvas' );
   const ctx    = canvas.getContext( '2d' );
   document.body.appendChild( canvas );
 
-  canvas.width = WIDTH;
-  canvas.height = HEIGHT;
+  canvas.width  = width;
+  canvas.height = height;
+
+  return { canvas, ctx };
+}
+
+function noiseTest() {
+  const { canvas, ctx } = createCanvas( WIDTH, HEIGHT );
 
   const simplex = new SimplexNoise();
   const noise2D = simplex.noise2D.bind( simplex );
@@ -33,8 +39,34 @@ function noiseTest() {
   return ctx;
 }
 
-export default function() {
-  noiseTest();
+function aoTest( ctx ) {
+  const { canvas } = ctx;
+  const imageData = ctx.getImageData( 0, 0, canvas.width, canvas.height );
+
+  console.time( 'ao' );
+  const aoImageData = ao( imageData, {
+    strength: 2.5
+  });
+  console.timeEnd( 'ao' );
+
+  const { ctx: aoCtx } = createCanvas( canvas.width, canvas.height );
+  aoCtx.putImageData( aoImageData, 0, 0 );
 }
 
+function specularTest( ctx ) {
+  const { canvas } = ctx;
+  const imageData = ctx.getImageData( 0, 0, canvas.width, canvas.height );
 
+  console.time( 'specular' );
+  const specularImageData = specular( imageData );
+  console.timeEnd( 'specular' );
+
+  const { ctx: specularCtx } = createCanvas( canvas.width, canvas.height );
+  specularCtx.putImageData( specularImageData, 0, 0 );
+}
+
+export default function() {
+  const noiseCtx = noiseTest();
+  aoTest( noiseCtx );
+  specularTest( noiseCtx );
+}

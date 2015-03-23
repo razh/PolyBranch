@@ -1,3 +1,4 @@
+import grayscale from './grayscale';
 import createImageData from './image-data';
 
 export const SpecularFallOff = {
@@ -6,20 +7,29 @@ export const SpecularFallOff = {
   SQUARE: 2
 };
 
-export default function specular(
-  imageData,
+export default function specular( imageData, {
   mean    = 255,
   range   = 255,
   falloff = SpecularFallOff.LINEAR
-) {
+} = {} ) {
   const { data, width, height } = imageData;
+
+  const grayscaleImageData = grayscale( imageData );
+  const grayscaleData      = grayscaleImageData.data;
 
   const output = createImageData( width, height );
   const dst    = output.data;
 
   for ( let i = 0, il = data.length; i < il; i += 4 ) {
-    let value = ( data[ i ] + data[ i + 1 ] + data[ i + 3 ] ) / 3;
-    value     = ( 1 > value || value > 255 ) ? 0 : value;
+    // Average grayscale data.
+    let value = (
+      grayscaleData[ i     ] +
+      grayscaleData[ i + 1 ] +
+      grayscaleData[ i + 2 ]
+    ) / 3;
+
+    // Clamp.
+    value = ( 1 > value || value > 255 ) ? 0 : value;
 
     const distance = ( range - Math.abs( value - mean ) ) / range;
     if ( falloff === SpecularFallOff.None ) {

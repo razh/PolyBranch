@@ -3,16 +3,15 @@ import grayscale from './grayscale';
 import createImageData from './image-data';
 import { blur, sharpen } from './gaussian-blur';
 
-export default function ao(
-  imageData,
+export default function ao( imageData, {
   smoothing = -10,
   strength  = 0.5,
   level     = 7
-) {
+} = {} ) {
   const { data, width, height } = imageData;
 
   const grayscaleImageData = grayscale( imageData );
-  const sobelImageData     = sobel( imageData, strength, level );
+  const sobelImageData     = sobel( grayscaleImageData, strength, level );
 
   if ( smoothing > 0 ) {
     sharpen( sobelImageData, Math.abs( smoothing ) );
