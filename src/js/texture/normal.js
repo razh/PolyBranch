@@ -10,7 +10,7 @@ export default function normal( imageData, {
 } = {} ) {
   const { data, width, height } = imageData;
 
-  const grayscaleImageData = grayscale( imageData );
+  const grayscaleImageData = grayscale( imageData, true );
   const sobelImageData     = sobel( grayscaleImageData, strength, level );
   const sobelData          = sobelImageData.data;
 
@@ -21,11 +21,6 @@ export default function normal( imageData, {
   }
 
   const output = createImageData( width, height );
-  const dst    = output.data;
-
-  for ( let i = 0, il = data.length; i < il; i++ ) {
-    dst[i] = sobelData[i];
-  }
-
+  output.data.set( sobelData );
   return output;
 }
