@@ -116,7 +116,7 @@ function specularTest( ctx ) {
 }
 
 
-function viewer({
+function createViewer({
   width  = 512,
   height = 512,
   texture,
@@ -204,5 +204,23 @@ function createTextures( image ) {
 }
 
 export default function() {
-  viewer( createTextures( noiseTest() ) );
+  createViewer( createTextures( noiseTest() ) );
+
+  document.addEventListener( 'dragover', event => {
+    event.preventDefault();
+    event.stopPropagation();
+  });
+
+  document.addEventListener( 'drop', event => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const { files } = event.dataTransfer;
+
+    if ( files.length ) {
+      const image = new Image();
+      image.onload = () => createViewer( createTextures( image ) );
+      image.src = URL.createObjectURL( files[0] );
+    }
+  });
 }
