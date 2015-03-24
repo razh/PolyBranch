@@ -1,5 +1,6 @@
 import THREE from 'three';
 import SimplexNoise from 'simplex-noise';
+import NormalDisplacementShader from './../../../vendor/shaders/NormalDisplacementShader';
 
 import ao from './../texture/ao';
 import displacement from './../texture/displacement';
@@ -78,7 +79,10 @@ function displacementTest( ctx ) {
   displacementCtx.putImageData( displacementImageData, 0, 0 );
   console.log( 'displacement bias:', bias );
 
-  return displacementCanvas;
+  return {
+    displacementCanvas,
+    displacementBias: bias
+  };
 }
 
 function normalTest( ctx ) {
@@ -122,6 +126,7 @@ function createViewer({
   texture,
   aoTexture,
   displacementTexture,
+  displacementBias,
   normalTexture,
   specularTexture
 }) {
@@ -137,14 +142,47 @@ function createViewer({
   camera.position.set( 0, 0, 3 );
   scene.add( camera );
 
-  const material = new THREE.MeshPhongMaterial({
-    map:         texture,
-    lightMap:    aoTexture,
-    normalMap:   normalTexture,
-    specularMap: specularTexture
-  });
+  function createMaterial() {
+    return new THREE.MeshPhongMaterial({
+      map:         texture,
+      lightMap:    aoTexture,
+      normalMap:   normalTexture,
+      specularMap: specularTexture
+    });
+  }
+
+  function createNormalDisplacementShaderMaterial() {
+    const shader = THREE.NormalDisplacementShader;
+    const uniforms = THREE.UniformsUtils.clone( shader.uniforms );
+
+    uniforms.enableDiffuse.value      = true;
+    uniforms.enableAO.value           = true;
+    uniforms.enableSpecular.value     = true;
+    uniforms.enableDisplacement.value = true;
+
+    uniforms.tDiffuse.value  = texture;
+    uniforms.tAO.value       = aoTexture;
+    uniforms.tNormal.value   = normalTexture;
+    uniforms.tSpecular.value = specularTexture;
+
+    uniforms.tDisplacement.value = displacementTexture;
+
+    const scale = 0.25;
+    uniforms.uDisplacementBias.value  = scale * -displacementBias;
+    uniforms.uDisplacementScale.value = scale;
+
+    return new THREE.ShaderMaterial({
+      fragmentShader: shader.fragmentShader,
+      vertexShader:   shader.vertexShader,
+      uniforms,
+      lights: true
+    });
+  }
+
+  const material = createNormalDisplacementShaderMaterial();
 
   function createMesh( geometry ) {
+    geometry.computeTangents();
     const mesh = new THREE.Mesh( geometry, material );
     mesh.visible = false;
     mesh.castShadow = true;
@@ -159,18 +197,19 @@ function createViewer({
   const sphereMesh = createMesh( sphereGeometry );
   meshes.push( sphereMesh );
 
-  const boxGeometry = new THREE.BoxGeometry( 1.5, 1.5, 1.5 );
+  const boxGeometry = new THREE.BoxGeometry( 1.5, 1.5, 1.5, 96, 96, 96 );
   const boxMesh = createMesh( boxGeometry );
   boxMesh.rotation.x = boxMesh.rotation.y = Math.PI / 4;
   meshes.push( boxMesh );
 
-  const planeGeometry = new THREE.PlaneBufferGeometry( 1.5, 1.5 );
+  const planeGeometry = new THREE.PlaneBufferGeometry( 1.5, 1.5, 96, 96 );
   const planeMesh = createMesh( planeGeometry );
+  planeMesh.rotation.x = -Math.PI / 4;
   meshes.push( planeMesh );
 
-  const cylinderGeometry = new THREE.CylinderGeometry( 1, 1, 8, 16, 1, true );
+  const cylinderGeometry = new THREE.CylinderGeometry( 1, 1, 8, 48, 8, true );
   const cylinderMesh = createMesh( cylinderGeometry );
-  cylinderMesh.material = cylinderMesh.material.clone();
+  cylinderMesh.material = createNormalDisplacementShaderMaterial();
   cylinderMesh.material.side = THREE.BackSide;
   cylinderMesh.rotation.x = Math.PI / 2;
   cylinderMesh.position.z = -2;
@@ -230,9 +269,11 @@ function createTextures( image ) {
 
   ctx.drawImage( image, 0, 0 );
 
+  const { displacementCanvas, displacementBias } = displacementTest( ctx );
+
   const texture             = createTexture( image );
   const aoTexture           = createTexture( aoTest( ctx ) );
-  const displacementTexture = createTexture( displacementTest( ctx ) );
+  const displacementTexture = createTexture( displacementCanvas );
   const normalTexture       = createTexture( normalTest( ctx ) );
   const specularTexture     = createTexture( specularTest( ctx ) );
 
@@ -240,6 +281,7 @@ function createTextures( image ) {
     texture,
     aoTexture,
     displacementTexture,
+    displacementBias,
     normalTexture,
     specularTexture
   };
