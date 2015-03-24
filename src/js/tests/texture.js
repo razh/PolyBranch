@@ -144,16 +144,58 @@ function createViewer({
     specularMap: specularTexture
   });
 
+  function createMesh( geometry ) {
+    const mesh = new THREE.Mesh( geometry, material );
+    mesh.visible = false;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    scene.add( mesh );
+    return mesh;
+  }
+
+  const meshes = [];
+
   const sphereGeometry = new THREE.SphereGeometry( 1, 32, 24 );
-  const sphereMesh = new THREE.Mesh( sphereGeometry, material );
-  sphereMesh.castShadow    = true;
-  sphereMesh.receiveShadow = true;
-  scene.add( sphereMesh );
+  const sphereMesh = createMesh( sphereGeometry );
+  meshes.push( sphereMesh );
+
+  const boxGeometry = new THREE.BoxGeometry( 1.5, 1.5, 1.5 );
+  const boxMesh = createMesh( boxGeometry );
+  boxMesh.rotation.x = boxMesh.rotation.y = Math.PI / 4;
+  meshes.push( boxMesh );
+
+  const planeGeometry = new THREE.PlaneBufferGeometry( 1.5, 1.5 );
+  const planeMesh = createMesh( planeGeometry );
+  meshes.push( planeMesh );
+
+  const cylinderGeometry = new THREE.CylinderGeometry( 1, 1, 8, 16, 1, true );
+  const cylinderMesh = createMesh( cylinderGeometry );
+  cylinderMesh.material = cylinderMesh.material.clone();
+  cylinderMesh.material.side = THREE.BackSide;
+  cylinderMesh.rotation.x = Math.PI / 2;
+  cylinderMesh.position.z = -2;
+  meshes.push( cylinderMesh );
 
   const light = new THREE.DirectionalLight( 0xffffff, 1.5 );
   light.position.set( 3, 3, 3 );
   light.castShadow = true;
   scene.add( light );
+
+  renderer.domElement.addEventListener( 'mousedown', (() => {
+    let index = 0;
+
+    function toggle( index ) {
+      meshes.forEach( ( mesh, i ) => mesh.visible = i === index );
+    }
+
+    toggle( index );
+
+    return () => {
+      index = ( index + 1 ) % meshes.length;
+      toggle( index );
+      renderer.render( scene, camera );
+    };
+  })() );
 
   renderer.domElement.addEventListener( 'mousemove', event => {
     const rect = renderer.domElement.getBoundingClientRect();
