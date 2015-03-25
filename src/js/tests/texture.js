@@ -10,6 +10,10 @@ import normal from './../texture/normal';
 import sobel from './../texture/sobel';
 import specular from './../texture/specular';
 
+import renderToImage from './../texture/render-to-image';
+
+const glslify = require( 'glslify' );
+
 const WIDTH  = 256;
 const HEIGHT = 256;
 
@@ -287,8 +291,45 @@ function createTextures( image ) {
   };
 }
 
+function renderToImageTest() {
+  console.time( 'renderToImage' );
+  const fragmentShader = glslify(`
+    #pragma glslify: noise = require(glsl-noise/simplex/2d);
+
+    uniform vec2 resolution;
+
+    float fbm( vec2 position, float lacunarity, float gain ) {
+      vec2 p = position;
+      float amplitude = gain;
+      float sum = 0.0;
+
+      for ( int i = 0; i < 16; i++ ) {
+          sum += amplitude * noise( p );
+          p *= lacunarity;
+          amplitude *= gain;
+      }
+
+      return sum;
+    }
+
+    void main() {
+      vec2 position = 2.0 * ( gl_FragCoord.xy / resolution ) - 1.0;
+      float brightness = 0.5 * ( fbm( position, 2.0, 0.5 ) + 1.0 );
+      gl_FragColor = vec4( vec3( brightness ), 1.0 );
+    }
+  `, { inline: true } );
+
+  const image = document.createElement( 'img' );
+  image.src = renderToImage( fragmentShader, 256 );
+  document.body.appendChild( image );
+  console.timeEnd( 'renderToImage' );
+
+  return image;
+}
+
 export default function() {
   createViewer( createTextures( noiseTest() ) );
+  renderToImageTest();
 
   document.addEventListener( 'dragover', event => {
     event.preventDefault();

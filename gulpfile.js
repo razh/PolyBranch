@@ -10,6 +10,7 @@ var babelify = require('babelify');
 var browserify = require('browserify');
 var browserSync = require('browser-sync');
 var del = require('del');
+var glslify = require('glslify');
 var runSequence = require('run-sequence');
 var source = require('vinyl-source-stream');
 var watchify = require('watchify');
@@ -40,7 +41,9 @@ function jsTask(name, src, dest) {
         debug: true
       }, watchify.args)));
 
-    bundler.transform(babelify);
+    bundler
+      .transform(babelify)
+      .transform(glslify);
 
     function rebundle() {
       return bundler.bundle()

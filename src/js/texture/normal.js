@@ -8,7 +8,7 @@ export default function normal( imageData, {
   strength  = 2.5,
   level     = 7
 } = {} ) {
-  const { data, width, height } = imageData;
+  const { width, height } = imageData;
 
   const grayscaleImageData = grayscale( imageData, true );
   const sobelImageData     = sobel( grayscaleImageData, strength, level );

@@ -19,6 +19,7 @@
   "homepage": "https://github.com/razh/PolyBranch",
   "dependencies": {
     "dat-gui": "^0.5.0",
+    "glsl-noise": "0.0.0",
     "lodash": "^3.5.0",
     "simplex-noise": "^2.1.1",
     "stackblur": "^1.0.0",
@@ -29,6 +30,7 @@
     "browser-sync": "^2.4.0",
     "browserify": "^9.0.3",
     "del": "^1.1.1",
+    "glslify": "^2.0.1",
     "gulp": "^3.8.11",
     "gulp-util": "^3.0.4",
     "run-sequence": "^1.0.2",
