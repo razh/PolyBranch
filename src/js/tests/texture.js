@@ -293,19 +293,20 @@ function createTextures( image ) {
 
 function renderToImageTest() {
   console.time( 'renderToImage' );
+  // vec2 position is in range [-1, 1].
   const fragmentShader = glslify(`
     #pragma glslify: noise = require(glsl-noise/simplex/2d);
 
     uniform vec2 resolution;
 
     float fbm( vec2 position, float lacunarity, float gain ) {
-      vec2 p = position;
+      float frequency = 1.0;
       float amplitude = gain;
       float sum = 0.0;
 
       for ( int i = 0; i < 16; i++ ) {
-        sum += amplitude * noise( p );
-        p *= lacunarity;
+        sum += amplitude * noise( position * frequency );
+        frequency *= lacunarity;
         amplitude *= gain;
       }
 
@@ -331,31 +332,28 @@ function renderToImageTilingTest() {
   console.time( 'renderToImageTiling' );
 
   const fragmentShader = glslify(`
-    #pragma glslify: noise4d = require(glsl-noise/simplex/4d);
+    #pragma glslify: noise = require(glsl-noise/simplex/4d);
 
     uniform vec2 resolution;
 
     #define PI2 6.283185307179586
-    #define scale 2.0
 
-    float noise( vec2 p ) {
-      float radius = scale / PI2;
-      vec2 q = p / radius;
-      float nx = cos( q.x );
-      float ny = cos( q.y );
-      float nz = sin( q.x );
-      float nw = sin( q.y );
-      return noise4d( radius * vec4( nx, ny, nz, nw ) );
+    vec4 project( vec2 p ) {
+      float nx = cos( p.x * PI2 );
+      float ny = sin( p.x * PI2 );
+      float nz = cos( p.y * PI2 );
+      float nw = sin( p.y * PI2 );
+      return vec4( nx, ny, nz, nw );
     }
 
-    float fbm( vec2 position, float lacunarity, float gain ) {
-      vec2 p = position;
+    float fbm( vec4 position, float lacunarity, float gain ) {
+      float frequency = 1.0;
       float amplitude = gain;
       float sum = 0.0;
 
       for ( int i = 0; i < 16; i++ ) {
-        sum += amplitude * noise( p );
-        p *= lacunarity;
+        sum += amplitude * noise( position * frequency );
+        frequency *= lacunarity;
         amplitude *= gain;
       }
 
@@ -364,24 +362,26 @@ function renderToImageTilingTest() {
 
     void main() {
       vec2 position = 2.0 * ( gl_FragCoord.xy / resolution ) - 1.0;
-      float brightness = 0.5 * ( fbm( position, 2.0, 0.5 ) + 1.0 );
+      float brightness = 0.5 * ( fbm( project( position ), 2.0, 0.5 ) + 1.0 );
       gl_FragColor = vec4( vec3( brightness ), 1.0 );
     }
   `, { inline: true } );
 
   const src = renderToImage( fragmentShader, 256 );
 
-  const imageA = document.createElement( 'img' );
-  imageA.src = src;
-  document.body.appendChild( imageA );
+  function addImage() {
+    const image = document.createElement( 'img' );
+    image.src = src;
+    document.body.appendChild( image );
+    return image;
+  }
 
-  const imageB = document.createElement( 'img' );
-  imageB.src = src;
-  document.body.appendChild( imageB );
+  const image = addImage();
+  addImage();
 
   console.timeEnd( 'renderToImageTiling' );
 
-  return imageA;
+  return image;
 }
 
 export default function() {
