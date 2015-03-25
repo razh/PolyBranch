@@ -304,9 +304,9 @@ function renderToImageTest() {
       float sum = 0.0;
 
       for ( int i = 0; i < 16; i++ ) {
-          sum += amplitude * noise( p );
-          p *= lacunarity;
-          amplitude *= gain;
+        sum += amplitude * noise( p );
+        p *= lacunarity;
+        amplitude *= gain;
       }
 
       return sum;
@@ -327,9 +327,67 @@ function renderToImageTest() {
   return image;
 }
 
+function renderToImageTilingTest() {
+  console.time( 'renderToImageTiling' );
+
+  const fragmentShader = glslify(`
+    #pragma glslify: noise4d = require(glsl-noise/simplex/4d);
+
+    uniform vec2 resolution;
+
+    #define PI2 6.283185307179586
+    #define scale 2.0
+
+    float noise( vec2 p ) {
+      float radius = scale / PI2;
+      vec2 q = p / radius;
+      float nx = cos( q.x );
+      float ny = cos( q.y );
+      float nz = sin( q.x );
+      float nw = sin( q.y );
+      return noise4d( radius * vec4( nx, ny, nz, nw ) );
+    }
+
+    float fbm( vec2 position, float lacunarity, float gain ) {
+      vec2 p = position;
+      float amplitude = gain;
+      float sum = 0.0;
+
+      for ( int i = 0; i < 16; i++ ) {
+        sum += amplitude * noise( p );
+        p *= lacunarity;
+        amplitude *= gain;
+      }
+
+      return sum;
+    }
+
+    void main() {
+      vec2 position = 2.0 * ( gl_FragCoord.xy / resolution ) - 1.0;
+      float brightness = 0.5 * ( fbm( position, 2.0, 0.5 ) + 1.0 );
+      gl_FragColor = vec4( vec3( brightness ), 1.0 );
+    }
+  `, { inline: true } );
+
+  const src = renderToImage( fragmentShader, 256 );
+
+  const imageA = document.createElement( 'img' );
+  imageA.src = src;
+  document.body.appendChild( imageA );
+
+  const imageB = document.createElement( 'img' );
+  imageB.src = src;
+  document.body.appendChild( imageB );
+
+  console.timeEnd( 'renderToImageTiling' );
+
+  return imageA;
+}
+
 export default function() {
   createViewer( createTextures( noiseTest() ) );
   renderToImageTest();
+  renderToImageTilingTest();
 
   document.addEventListener( 'dragover', event => {
     event.preventDefault();
