@@ -8,6 +8,8 @@ import THREE from 'three';
 
   To simplify calculations, geometries are generated so that they lie on the
   x/z plane before being joined together.
+
+  Positive z-axis points outwards.
  */
 export default class Tree {
   constructor() {
@@ -15,13 +17,50 @@ export default class Tree {
 
     const material = new THREE.MeshBasicMaterial({ wireframe: true });
     this.mesh = new THREE.SkinnedMesh( this.geometry, material );
-    return this.mesh;
+  }
+
+  createTrapezoidalPrism( geometry, bottomWidth, topWidth, height, depth ) {
+    const prism = new THREE.Geometry();
+
+    const halfBottomWidth = bottomWidth / 2;
+    const halfTopWidth    = topWidth    / 2;
+
+    const halfDepth = depth / 2;
+
+    prism.vertices = [
+      // Front counter-clockwise from bottom-left.
+      new THREE.Vector3( -halfBottomWidth, 0,      halfDepth ),
+      new THREE.Vector3(  halfBottomWidth, 0,      halfDepth ),
+      new THREE.Vector3(  halfTopWidth,    height, halfDepth ),
+      new THREE.Vector3( -halfTopWidth,    height, halfDepth ),
+      // Back clockwise from bottom-right.
+      new THREE.Vector3(  halfBottomWidth, 0,      -halfDepth ),
+      new THREE.Vector3( -halfBottomWidth, 0,      -halfDepth ),
+      new THREE.Vector3( -halfTopWidth,    height, -halfDepth ),
+      new THREE.Vector3(  halfTopWidth,    height, -halfDepth )
+    ];
+
+    prism.faces = [
+      // Front.
+      new THREE.Face3( 0, 1, 2 ),
+      new THREE.Face3( 2, 3, 0 ),
+      // Left.
+      new THREE.Face3( 0, 3, 5 ),
+      new THREE.Face3( 3, 6, 5 ),
+      // Back.
+      new THREE.Face3( 4, 5, 6 ),
+      new THREE.Face3( 4, 6, 7 ),
+      // Right.
+      new THREE.Face3( 1, 4, 7 ),
+      new THREE.Face3( 1, 7, 2 )
+    ];
+
+    return prism;
   }
 
   createPrism( geometry, faceIndex, ratio ) {
     const prism = new THREE.Geometry();
 
-    // z-axis positive points outwards.
     const face = geometry.faces[ faceIndex ];
 
     // Vertex indices.

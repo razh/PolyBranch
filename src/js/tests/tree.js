@@ -2,7 +2,7 @@ import THREE from 'three';
 
 import Tree from './../tree/tree';
 
-export function render3d() {
+function render3d() {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
@@ -14,13 +14,21 @@ export function render3d() {
   camera.position.set( 0, 0, 8 );
   scene.add( camera );
 
-  const treeMesh = new Tree();
-  scene.add( treeMesh );
+  const geometry = new Tree().createTrapezoidalPrism( null, 2, 1, 1, 1 );
+  const material = new THREE.MeshBasicMaterial({ wireframe: true });
+  const mesh = new THREE.Mesh( geometry, material );
+  scene.add( mesh );
 
-  renderer.render( scene, camera );
+  function animate() {
+    mesh.rotation.y += 0.01;
+    renderer.render( scene, camera );
+    requestAnimationFrame( animate );
+  }
+
+  animate();
 }
 
-export default function render2d() {
+function render2d() {
   const canvas = document.createElement( 'canvas' );
   const ctx     = canvas.getContext( '2d' );
 
@@ -139,4 +147,8 @@ export default function render2d() {
 
   triC.transformRight( ctx );
   triD.draw( ctx );
+}
+
+export default function() {
+  render3d();
 }
