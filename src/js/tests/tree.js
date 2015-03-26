@@ -34,6 +34,14 @@ function render3d() {
     scene.add( mesh );
   })();
 
+  (() => {
+    const geometry = tree.createPyramid( null, 1, 1, 1 );
+    const mesh = new THREE.Mesh( geometry, material );
+    mesh.position.y = 1;
+    meshes.push( mesh );
+    scene.add( mesh );
+  })();
+
   function animate() {
     meshes.map( mesh => mesh.rotation.y += 0.01 );
     renderer.render( scene, camera );

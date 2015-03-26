@@ -58,16 +58,16 @@ export default class Tree {
     return prism;
   }
 
-
   /*
     Equilateral triangular prism:
 
+                  5
                .-o
-            .-'   \  back
+          2 .-'   \  back
            o       o
-    front / \   .-'
+    front / \   .-' 3
          o---o-'
-
+        0     1
     Only the front and back triangles are visible.
    */
   createEquilateralTriangularPrism( geometry, length, depth ) {
@@ -97,6 +97,45 @@ export default class Tree {
     ];
 
     return prism;
+  }
+
+  createPyramid( geometry, width, height, depth ) {
+    const pyramid = new THREE.Geometry();
+
+    const halfWidth  = width / 2;
+    const halfDepth  = depth / 2;
+
+    /*
+       4       3
+        o-----o
+        |     |  right
+        |     |
+        o-----o
+       1       2
+         front
+     */
+    pyramid.vertices = [
+      // Top.
+      new THREE.Vector3( 0, height, 0 ),
+      // Top-down counter-clockwise from front-left.
+      new THREE.Vector3( -halfWidth, 0,  halfDepth ),
+      new THREE.Vector3(  halfWidth, 0,  halfDepth ),
+      new THREE.Vector3(  halfWidth, 0, -halfDepth ),
+      new THREE.Vector3( -halfWidth, 0, -halfDepth )
+    ];
+
+    pyramid.faces = [
+      // Front.
+      new THREE.Face3( 0, 1, 2 ),
+      // Right.
+      new THREE.Face3( 0, 2, 3 ),
+      // Back.
+      new THREE.Face3( 0, 3, 4 ),
+      // Left.
+      new THREE.Face3( 0, 4, 1 )
+    ];
+
+    return pyramid;
   }
 
   update() {}
