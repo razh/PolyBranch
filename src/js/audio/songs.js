@@ -9,6 +9,8 @@ function songA() {
   }, '4n' );
 
   Tone.Transport.start();
+
+  setTimeout( () => Tone.Transport.stop(), 2000 );
 }
 
 const songs = {
