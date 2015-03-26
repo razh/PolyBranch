@@ -23,7 +23,8 @@
     "lodash": "^3.5.0",
     "simplex-noise": "^2.1.1",
     "stackblur": "^1.0.0",
-    "three": "^0.70.0"
+    "three": "^0.70.0",
+    "tone": "^0.4.2"
   },
   "devDependencies": {
     "babelify": "^5.0.4",
