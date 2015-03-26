@@ -43,7 +43,7 @@ export default class Tree {
     prism.faces = [
       // Front.
       new THREE.Face3( 0, 1, 2 ),
-      new THREE.Face3( 2, 3, 0 ),
+      new THREE.Face3( 0, 2, 3 ),
       // Left.
       new THREE.Face3( 0, 3, 5 ),
       new THREE.Face3( 3, 6, 5 ),
@@ -58,35 +58,45 @@ export default class Tree {
     return prism;
   }
 
-  createPrism( geometry, faceIndex, ratio ) {
+
+  /*
+    Equilateral triangular prism:
+
+               .-o
+            .-'   \  back
+           o       o
+    front / \   .-'
+         o---o-'
+
+    Only the front and back triangles are visible.
+   */
+  createEquilateralTriangularPrism( geometry, length, depth ) {
     const prism = new THREE.Geometry();
 
-    const face = geometry.faces[ faceIndex ];
+    const height = ( Math.sqrt( 3 ) / 2 ) * length;
 
-    // Vertex indices.
-    const { a, b, c } = face;
+    const halfLength = length / 2;
+    const halfDepth  = depth  / 2;
 
-    // Vertices.
-    const va = geometry.vertices[ a ];
-    const vb = geometry.vertices[ b ];
-    const vc = geometry.vertices[ c ];
+    prism.vertices = [
+      // Front counter-clockwise from bottom-left.
+      new THREE.Vector3( -halfLength, 0,      halfDepth ),
+      new THREE.Vector3(  halfLength, 0,      halfDepth ),
+      new THREE.Vector3(  0,          height, halfDepth ),
+      // Back clockwise from bottom-right.
+      new THREE.Vector3(  halfLength, 0,      -halfDepth ),
+      new THREE.Vector3( -halfLength, 0,      -halfDepth ),
+      new THREE.Vector3(  0,          height, -halfDepth )
+    ];
 
-    /*
-      Equilateral triangular prism:
+    prism.faces = [
+      // Front.
+      new THREE.Face3( 0, 1, 2 ),
+      // Back.
+      new THREE.Face3( 3, 4, 5 )
+    ];
 
-                 .-o
-              .-'   \  back
-             o       o
-      front / \   .-'
-           o---o-'
-
-      Only the front and back triangles are visible.
-     */
-
-    // Front triangle.
-    geometry.faces.push( new THREE.Face() );
-    // Back triangle.
-    geometry.faces.push( new THREE.Face() );
+    return prism;
   }
 
   update() {}

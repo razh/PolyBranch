@@ -14,13 +14,28 @@ function render3d() {
   camera.position.set( 0, 0, 8 );
   scene.add( camera );
 
-  const geometry = new Tree().createTrapezoidalPrism( null, 2, 1, 1, 1 );
+  const meshes = [];
+
   const material = new THREE.MeshBasicMaterial({ wireframe: true });
-  const mesh = new THREE.Mesh( geometry, material );
-  scene.add( mesh );
+  const tree = new Tree();
+
+  (() => {
+    const geometry = tree.createTrapezoidalPrism( null, 2, 1, 1, 1 );
+    const mesh = new THREE.Mesh( geometry, material );
+    meshes.push( mesh );
+    scene.add( mesh );
+  })();
+
+  (() => {
+    const geometry = tree.createEquilateralTriangularPrism( null, 1, 1 );
+    const mesh = new THREE.Mesh( geometry, material );
+    mesh.position.y = 1;
+    meshes.push( mesh );
+    scene.add( mesh );
+  })();
 
   function animate() {
-    mesh.rotation.y += 0.01;
+    meshes.map( mesh => mesh.rotation.y += 0.01 );
     renderer.render( scene, camera );
     requestAnimationFrame( animate );
   }
