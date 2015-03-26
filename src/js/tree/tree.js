@@ -70,7 +70,7 @@ export default class Tree {
         0     1
     Only the front and back triangles are visible.
    */
-  createEquilateralTriangularPrism( geometry, length, depth ) {
+  createEquilateralTriangularPrism( geometry, length, depth, rotate ) {
     const prism = new THREE.Geometry();
 
     const height = ( Math.sqrt( 3 ) / 2 ) * length;
@@ -95,6 +95,18 @@ export default class Tree {
       // Back.
       new THREE.Face3( 3, 4, 5 )
     ];
+
+    // Left-only rotation. Show right side.
+    if ( rotate === 'left' ) {
+      prism.faces.push( new THREE.Face3( 1, 3, 5 ) );
+      prism.faces.push( new THREE.Face3( 1, 5, 2 ) );
+    }
+
+    // Right-only rotation. Show left side.
+    if ( rotate === 'right' ) {
+      prism.faces.push( new THREE.Face3( 0, 2, 4 ) );
+      prism.faces.push( new THREE.Face3( 2, 5, 4 ) );
+    }
 
     return prism;
   }
