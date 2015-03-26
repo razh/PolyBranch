@@ -20,24 +20,25 @@ function render3d() {
   const tree = new Tree();
 
   (() => {
-    const geometry = tree.createTrapezoidalPrism( null, 2, 1, 1, 1 );
+    const geometry = tree.createTrapezoidalPrism( null, 2, 1, 1.5, 1 );
     const mesh = new THREE.Mesh( geometry, material );
     meshes.push( mesh );
     scene.add( mesh );
   })();
 
   (() => {
-    const geometry = tree.createEquilateralTriangularPrism( null, 1, 1 );
+    const geometry = tree.createEquilateralTriangularPrism( null, 1, 1, 'right' );
+    tree.applyTrapezoidalPrismTransform( geometry, 1.5 );
     const mesh = new THREE.Mesh( geometry, material );
-    mesh.position.y = 1;
     meshes.push( mesh );
     scene.add( mesh );
   })();
 
   (() => {
-    const geometry = tree.createPyramid( null, 1, 1, 1 );
+    const geometry = tree.createPyramid( null, 1, 2, 1, 'right' );
+    tree.applyEquilateralTriangularPrismTransform( geometry, 1, 1, 'right' );
+    tree.applyTrapezoidalPrismTransform( geometry, 1.5 );
     const mesh = new THREE.Mesh( geometry, material );
-    mesh.position.y = 1;
     meshes.push( mesh );
     scene.add( mesh );
   })();
@@ -89,9 +90,9 @@ function render2d() {
   }
 
   function createEquilateralTriangle( length ) {
-    const height = ( Math.sqrt( 3 ) / 2 ) * length;
-
     const halfLength = length / 2;
+
+    const height = Math.sqrt( 3 ) * halfLength;
     const halfHeight = height / 2;
 
     return {

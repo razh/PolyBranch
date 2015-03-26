@@ -1,5 +1,7 @@
 import THREE from 'three';
 
+const temp = new THREE.Matrix4();
+
 /*
   A tree is composed of trapezoids, with branches terminating with triangles.
 
@@ -58,6 +60,11 @@ export default class Tree {
     return prism;
   }
 
+  applyTrapezoidalPrismTransform( geometry, height ) {
+    geometry.applyMatrix( temp.makeTranslation( 0, height, 0 ) );
+    return geometry;
+  }
+
   /*
     Equilateral triangular prism:
 
@@ -70,13 +77,13 @@ export default class Tree {
         0     1
     Only the front and back triangles are visible.
    */
-  createEquilateralTriangularPrism( geometry, length, depth, rotate ) {
+  createEquilateralTriangularPrism( geometry, length, depth, rotation ) {
     const prism = new THREE.Geometry();
-
-    const height = ( Math.sqrt( 3 ) / 2 ) * length;
 
     const halfLength = length / 2;
     const halfDepth  = depth  / 2;
+
+    const height = Math.sqrt( 3 ) * halfLength;
 
     prism.vertices = [
       // Front counter-clockwise from bottom-left.
@@ -97,18 +104,38 @@ export default class Tree {
     ];
 
     // Left-only rotation. Show right side.
-    if ( rotate === 'left' ) {
+    if ( rotation === 'left' ) {
       prism.faces.push( new THREE.Face3( 1, 3, 5 ) );
       prism.faces.push( new THREE.Face3( 1, 5, 2 ) );
     }
 
     // Right-only rotation. Show left side.
-    if ( rotate === 'right' ) {
+    if ( rotation === 'right' ) {
       prism.faces.push( new THREE.Face3( 0, 2, 4 ) );
       prism.faces.push( new THREE.Face3( 2, 5, 4 ) );
     }
 
     return prism;
+  }
+
+  applyEquilateralTriangularPrismTransform( geometry, length, depth, rotation ) {
+    const halfLength = length / 2;
+
+    const height = Math.sqrt( 3 ) * halfLength;
+    const halfHeight = height / 2;
+
+    let x = 0;
+    if ( rotation === 'left'  ) { x = -halfLength / 2; }
+    if ( rotation === 'right' ) { x =  halfLength / 2; }
+
+    let angle = 0;
+    if ( rotation === 'left'  ) { angle =  Math.PI / 3; }
+    if ( rotation === 'right' ) { angle = -Math.PI / 3; }
+
+    geometry.applyMatrix( temp.makeRotationZ( angle ) );
+    geometry.applyMatrix( temp.makeTranslation( x, halfHeight, 0 ) );
+
+    return geometry;
   }
 
   createPyramid( geometry, width, height, depth ) {
