@@ -61,25 +61,42 @@ function render2d() {
   canvas.height = size;
   document.body.appendChild( canvas );
 
+  function drawPolygon( ctx, vertices ) {
+    if ( !vertices.length ) {
+      return;
+    }
+
+    ctx.beginPath();
+
+    ctx.moveTo( vertices[0][0], vertices[0][1] );
+    for ( let i = 1, il = vertices.length; i < il; i++ ) {
+      ctx.lineTo( vertices[i][0], vertices[i][1] );
+    }
+
+    ctx.closePath();
+
+    ctx.fill();
+    ctx.stroke();
+  }
+
   // Bottom-heavy trapezoid.
   function createTrapezoid( bottomWidth, topWidth, height ) {
     const halfBottomWidth = bottomWidth / 2;
     const halfTopWidth    = topWidth    / 2;
 
+    // Counter-clockwise from bottom-left.
+    const vertices = [
+      [ -halfBottomWidth, 0      ],
+      [  halfBottomWidth, 0      ],
+      [  halfTopWidth,    height ],
+      [ -halfTopWidth,    height ]
+    ];
+
     return {
+      vertices,
+
       draw( ctx ) {
-        ctx.beginPath();
-
-        // Counter-clockwise from bottom-left.
-        ctx.moveTo( -halfBottomWidth, 0 );
-        ctx.lineTo(  halfBottomWidth, 0 );
-        ctx.lineTo(  halfTopWidth,    height );
-        ctx.lineTo( -halfTopWidth,    height );
-
-        ctx.closePath();
-
-        ctx.fill();
-        ctx.stroke();
+        drawPolygon( ctx, vertices );
       },
 
       transform( ctx ) {
@@ -95,17 +112,18 @@ function render2d() {
     const height = Math.sqrt( 3 ) * halfLength;
     const halfHeight = height / 2;
 
+    // Counter-clockwise from bottom-left.
+    const vertices = [
+      [ -halfLength, 0      ],
+      [  halfLength, 0      ],
+      [  0,          height ]
+    ];
+
     return {
+      vertices,
+
       draw( ctx ) {
-        ctx.beginPath();
-
-        // Counter-clockwise from bottom-left.
-        ctx.moveTo( -halfLength, 0 );
-        ctx.lineTo(  halfLength, 0 );
-        ctx.lineTo(  0,          height );
-
-        ctx.fill();
-        ctx.stroke();
+        drawPolygon( ctx, vertices );
       },
 
       transformLeft( ctx ) {
@@ -127,16 +145,17 @@ function render2d() {
   function createIsocelesTriangle( width, height ) {
     const halfWidth  = width / 2;
 
+    const vertices = [
+      [ -halfWidth, 0      ],
+      [  halfWidth, 0      ],
+      [  0,         height ]
+    ];
+
     return {
+      vertices,
+
       draw( ctx ) {
-        ctx.beginPath();
-
-        ctx.moveTo( -halfWidth, 0 );
-        ctx.lineTo(  halfWidth, 0 );
-        ctx.lineTo(  0,         height );
-
-        ctx.fill();
-        ctx.stroke();
+        drawPolygon( ctx, vertices );
       }
     };
   }
