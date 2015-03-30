@@ -7,6 +7,7 @@ let prevKeyCode = 0;
 
 const keyCodeToFrequency = (() => {
 
+  // https://github.com/stuartmemo/qwerty-hancock
   const notes = {
     // Lower octave.
     65: 'Cl',
@@ -57,6 +58,7 @@ const onKeyDown = (() => {
 
     listener = event => {
       const { keyCode } = event;
+      // Only trigger once per keydown event.
       if ( !keys[ keyCode ] ) {
         keys[ keyCode ] = true;
 
@@ -91,7 +93,10 @@ const onKeyUp = (() => {
         keys[ keyCode ] = false;
 
         const frequency = keyCodeToFrequency( keyCode );
-        if ( frequency && keyCode === prevKeyCode ) {
+        if ( synth instanceof Tone.PolySynth ) {
+          synth.triggerRelease( frequency );
+        } else if ( frequency && keyCode === prevKeyCode ) {
+          // Trigger release if this is the previous note played.
           synth.triggerRelease();
         }
       }
@@ -130,14 +135,21 @@ function songB() {
 
   onKeyDown( synth );
   onKeyUp( synth );
+}
 
-  Tone.Transport.start();
-  setTimeout( () => Tone.Transport.stop(), 2000 );
+function songC() {
+  const synth = new Tone.PolySynth( 4, Tone.MonoSynth );
+  synth.toMaster();
+  synth.volume.value = -10;
+
+  onKeyDown( synth );
+  onKeyUp( synth );
 }
 
 const songs = {
   songA,
-  songB
+  songB,
+  songC
 };
 
 export default songs;
