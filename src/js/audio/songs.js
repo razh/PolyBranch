@@ -1,7 +1,11 @@
 import { Tone } from 'tone';
 
+let octave = 4;
+
+const keys = [];
+let prevKeyCode = 0;
+
 const keyCodeToFrequency = (() => {
-  const octave = 4;
 
   const notes = {
     // Lower octave.
@@ -44,9 +48,6 @@ const keyCodeToFrequency = (() => {
     );
   };
 })();
-
-const keys = [];
-let prevKeyCode = 0;
 
 const onKeyDown = (() => {
   let listener;
@@ -99,6 +100,14 @@ const onKeyUp = (() => {
     document.addEventListener( 'keyup', listener );
   };
 })();
+
+// Octave controls.
+document.addEventListener( 'keydown', event => {
+  // Z. Decrease octave range (min: 0).
+  if ( event.keyCode === 90 ) { octave = Math.max( octave - 1, 0 ); }
+  // X. Increase octave range (max: 10).
+  if ( event.keyCode === 88 ) { octave = Math.min( octave + 1, 9 ); }
+});
 
 function songA() {
   const synth = new Tone.MonoSynth();
