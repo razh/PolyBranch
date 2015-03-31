@@ -5,7 +5,7 @@ import NormalDisplacementShader from './../../../vendor/shaders/NormalDisplaceme
 import ao from './../texture/ao';
 import displacement from './../texture/displacement';
 import grayscale from './../texture/grayscale';
-import fbm from './../texture/fbm';
+import fbm, { fbm4d } from './../texture/fbm';
 import normal from './../texture/normal';
 import sobel from './../texture/sobel';
 import specular from './../texture/specular';
@@ -384,10 +384,26 @@ function renderToImageTilingTest() {
   return image;
 }
 
+function noise4DTest() {
+  const { canvas, ctx } = createCanvas( WIDTH, HEIGHT );
+
+  const simplex = new SimplexNoise();
+  const noise4D = simplex.noise4D.bind( simplex );
+
+  console.time( 'noise4d' );
+  const imageData = fbm4d( canvas.width, canvas.height, noise4D );
+  console.timeEnd( 'noise4d' );
+
+  ctx.putImageData( imageData, 0, 0 );
+
+  return canvas;
+}
+
 export default function() {
   createViewer( createTextures( noiseTest() ) );
   renderToImageTest();
   renderToImageTilingTest();
+  noise4DTest();
 
   document.addEventListener( 'dragover', event => {
     event.preventDefault();
