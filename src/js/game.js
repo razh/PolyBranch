@@ -65,6 +65,8 @@ const branches = [
 // Tree has been moved inside layer as an internal class.
 export default class Game extends EventEmitter {
   constructor( canvas ) {
+    super();
+
     this.canvas = canvas;
     this.ctx    = this.canvas.getContext( '2d' );
 
