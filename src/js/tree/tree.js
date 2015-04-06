@@ -65,6 +65,19 @@ export default class Tree {
     return geometry;
   }
 
+  createTrapezoidalPrismBone( geometry, parent, height ) {
+    const index = geometry.bones.push({
+      parent,
+      name: 'trapezoidal',
+      pos: [ 0, height, 0 ],
+      rotq: [ 0, 0, 0, 1 ]
+    });
+
+    geometry.skinIndices.push( new THREE.Vector4( index, 0, 0, 0 ) );
+    geometry.skinWeights.push( new THREE.Vector4( 1, 0, 0, 0 ) );
+    return geometry;
+  }
+
   /*
     Equilateral triangular prism:
 
@@ -138,11 +151,24 @@ export default class Tree {
     return geometry;
   }
 
+  createEquilateralTriangularPrismBone( geometry, parent, length ) {
+    const index = geometry.bones.push({
+      parent,
+      name: 'equilateral-triangular',
+      pos: [ 0, length / 2, 0 ],
+      rotq: [ 0, 0, 0, 1 ]
+    });
+
+    geometry.skinIndices.push( new THREE.Vector4( index, 0, 0, 0 ) );
+    geometry.skinWeights.push( new THREE.Vector4( 1, 0, 0, 0 ) );
+    return geometry;
+  }
+
   createPyramid( geometry, width, height, depth ) {
     const pyramid = new THREE.Geometry();
 
-    const halfWidth  = width / 2;
-    const halfDepth  = depth / 2;
+    const halfWidth = width / 2;
+    const halfDepth = depth / 2;
 
     /*
        4       3
@@ -175,6 +201,19 @@ export default class Tree {
     ];
 
     return pyramid;
+  }
+
+  createPyramidBone( geometry, parent ) {
+    const index = geometry.bones.push({
+      parent,
+      name: 'pyramid',
+      pos: [ 0, 0, 0 ],
+      rotq: [ 0, 0, 0, 1 ]
+    });
+
+    geometry.skinIndices.push( new THREE.Vector4( index, 0, 0, 0 ) );
+    geometry.skinWeights.push( new THREE.Vector4( 1, 0, 0, 0 ) );
+    return geometry;
   }
 
   update() {}

@@ -54,7 +54,7 @@ function render3d() {
 
 function render2d() {
   const canvas = document.createElement( 'canvas' );
-  const ctx     = canvas.getContext( '2d' );
+  const ctx    = canvas.getContext( '2d' );
 
   const size = 640;
   canvas.width  = size;
@@ -143,7 +143,7 @@ function render2d() {
 
   // Branches.
   function createIsocelesTriangle( width, height ) {
-    const halfWidth  = width / 2;
+    const halfWidth = width / 2;
 
     const vertices = [
       [ -halfWidth, 0      ],
