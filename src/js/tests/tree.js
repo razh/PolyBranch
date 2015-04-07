@@ -11,40 +11,58 @@ function render3d() {
   const scene = new THREE.Scene();
 
   const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight );
-  camera.position.set( 0, 0, 8 );
+  const cameraRadius = 8;
+  camera.position.set( 0, 0, cameraRadius );
   scene.add( camera );
 
-  const meshes = [];
-
-  const material = new THREE.MeshBasicMaterial({ wireframe: true });
   const tree = new Tree();
 
-  (() => {
-    const geometry = tree.createTrapezoidalPrism( null, 2, 1, 1.5, 1 );
-    const mesh = new THREE.Mesh( geometry, material );
-    meshes.push( mesh );
-    scene.add( mesh );
-  })();
+  const geometry = tree.createTrapezoidalPrism( 2, 1, 1.5, 1 );
 
-  (() => {
-    const geometry = tree.createEquilateralTriangularPrism( null, 1, 1, 'right' );
-    tree.applyTrapezoidalPrismTransform( geometry, 1.5 );
-    const mesh = new THREE.Mesh( geometry, material );
-    meshes.push( mesh );
-    scene.add( mesh );
-  })();
+  const prism = tree.createEquilateralTriangularPrism( 1, 1, 'right' );
+  tree.applyTrapezoidalPrismTransform( prism, 1.5 );
+  geometry.merge( prism );
 
-  (() => {
-    const geometry = tree.createPyramid( null, 1, 2, 1, 'right' );
-    tree.applyEquilateralTriangularPrismTransform( geometry, 1, 1, 'right' );
-    tree.applyTrapezoidalPrismTransform( geometry, 1.5 );
-    const mesh = new THREE.Mesh( geometry, material );
-    meshes.push( mesh );
-    scene.add( mesh );
-  })();
+  const pyramid = tree.createPyramid( 1, 2, 1 );
+  tree.applyEquilateralTriangularPrismTransform( pyramid, 1, 'right' );
+  tree.applyTrapezoidalPrismTransform( pyramid, 1.5 );
+  geometry.merge( pyramid );
+
+  // Bones.
+  geometry.bones = [
+    {
+      parent: -1,
+      name: 'root',
+      pos: [ 0, 0, 0 ],
+      rotq: [ 0, 0, 0, 1 ]
+    }
+  ];
+
+  tree.createTrapezoidalPrismBone( geometry, 0, 1.5 );
+  tree.createEquilateralTriangularPrismBone( geometry, 1, 1, 'right' );
+  tree.createPyramidBone( geometry, 2, 2 );
+
+  const material = new THREE.MeshBasicMaterial({
+    skinning: true,
+    wireframe: true
+  });
+
+  const mesh = new THREE.SkinnedMesh( geometry, material );
+  scene.add( mesh );
+
+  const skeletonHelper = new THREE.SkeletonHelper( mesh );
+  skeletonHelper.material.linewidth = 4;
+  mesh.add( skeletonHelper );
 
   function animate() {
-    meshes.map( mesh => mesh.rotation.y += 0.01 );
+    // Rotate camera instead of mesh to prevent problems with SkeletonHelper
+    // transforms.
+    const time = Date.now() * 1e-3;
+    camera.position.x = cameraRadius * Math.cos( time );
+    camera.position.z = cameraRadius * Math.sin( time );
+    camera.lookAt( mesh.position );
+    skeletonHelper.update();
+
     renderer.render( scene, camera );
     requestAnimationFrame( animate );
   }
