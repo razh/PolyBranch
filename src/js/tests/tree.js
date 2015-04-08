@@ -1,6 +1,11 @@
 import THREE from 'three';
 
-import Tree from './../tree/tree';
+import Tree, {
+  TrapezoidalPrism,
+  EquilateralTriangularPrism,
+  Pyramid,
+  transformGeometry
+} from './../tree/tree';
 
 function render3d() {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -15,20 +20,17 @@ function render3d() {
   camera.position.set( 0, 0, cameraRadius );
   scene.add( camera );
 
-  const tree = new Tree();
+  const trapezoid = new TrapezoidalPrism( 2, 1, 1.5, 1 );
+  const triangle = new EquilateralTriangularPrism( 1, 1, 'right' );
+  const trapezoidA = new TrapezoidalPrism( 1, 0.75, 1.5, 1 );
+  const pyramid = new Pyramid( 0.75, 2, 1 );
 
-  const geometry = tree.createTrapezoidalPrism( 2, 1, 1.5, 1 );
+  trapezoid.add( triangle );
+  triangle.add( trapezoidA );
+  trapezoidA.add( pyramid );
 
-  const prism = tree.createEquilateralTriangularPrism( 1, 1, 'right' );
-  tree.applyTrapezoidalPrismTransform( prism, 1.5 );
-  geometry.merge( prism );
+  const geometry = new THREE.Geometry();
 
-  const pyramid = tree.createPyramid( 1, 2, 1 );
-  tree.applyEquilateralTriangularPrismTransform( pyramid, 1, 'right' );
-  tree.applyTrapezoidalPrismTransform( pyramid, 1.5 );
-  geometry.merge( pyramid );
-
-  // Bones.
   geometry.bones = [
     {
       parent: -1,
@@ -38,9 +40,16 @@ function render3d() {
     }
   ];
 
-  tree.createTrapezoidalPrismBone( geometry, 0, 1.5 );
-  tree.createEquilateralTriangularPrismBone( geometry, 1, 1, 'right' );
-  tree.createPyramidBone( geometry, 2, 2 );
+  trapezoid.traverse( object => {
+    const tempGeometry = object.createGeometry();
+    // Do not apply transform to root.
+    if ( object.parent ) {
+      transformGeometry( object.parent, tempGeometry );
+    }
+
+    geometry.merge( tempGeometry );
+    object.createBone( geometry );
+  });
 
   const material = new THREE.MeshBasicMaterial({
     skinning: true,
