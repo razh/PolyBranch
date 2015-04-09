@@ -146,10 +146,25 @@ function songC() {
   onKeyUp( synth );
 }
 
+function songD() {
+  const synth = new Tone.PolySynth( 4, Tone.FMSynth );
+  synth.toMaster();
+  synth.volume.value = -10;
+
+  synth.voices.forEach( voice => {
+    voice.carrier.oscillator.type = 'square';
+    voice.modulator.oscillator.type = 'sine';
+  });
+
+  onKeyDown( synth );
+  onKeyUp( synth );
+}
+
 const songs = {
   songA,
   songB,
-  songC
+  songC,
+  songD
 };
 
 export default songs;
