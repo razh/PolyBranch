@@ -4,6 +4,35 @@ import THREE from 'three';
 const matrix = new THREE.Matrix4();
 const vector = new THREE.Vector3();
 
+function rotateWorld( object, vector ) {
+  const { parent } = object;
+  if ( !parent ) {
+    return vector;
+  }
+
+  if ( parent.type === 'EquilateralTriangularPrism' ) {
+    if ( object === parent.left  ) { parent.transformLeft();  }
+    if ( object === parent.right ) { parent.transformRight(); }
+  }
+
+  return vector.applyMatrix4( matrix.extractRotation( parent.matrixWorld ) );
+}
+
+function getParentBoneIndex( object ) {
+  const { parent } = object;
+  // Default to first bone.
+  if ( !parent ) {
+    return 0;
+  }
+
+  if ( parent.type === 'EquilateralTriangularPrism' ) {
+    if ( object === parent.left )  { return parent.leftIndex;  }
+    if ( object === parent.right ) { return parent.rightIndex; }
+  }
+
+  return parent.index;
+}
+
 /*
   A tree is composed of trapezoids, with branches terminating with triangles.
 
@@ -18,6 +47,8 @@ const vector = new THREE.Vector3();
 export class TrapezoidalPrism extends THREE.Object3D {
   constructor( bottomWidth = 1, topWidth = 1, height = 1, depth = 1 ) {
     super();
+
+    this.type = 'TrapezoidalPrism';
 
     this.bottomWidth = bottomWidth;
     this.topWidth    = topWidth;
@@ -77,15 +108,11 @@ export class TrapezoidalPrism extends THREE.Object3D {
   }
 
   createBone( geometry ) {
-    const parent = ( this.parent && this.parent.index ) || 0;
-
     vector.set( 0, this.height, 0 );
-    if ( this.parent ) {
-      vector.applyMatrix4( matrix.extractRotation( this.parent.matrixWorld ) );
-    }
+    rotateWorld( this, vector );
 
     const index = geometry.bones.push({
-      parent,
+      parent: getParentBoneIndex( this ),
       name: 'trapezoidal',
       pos: vector.toArray(),
       rotq: [ 0, 0, 0, 1 ]
@@ -107,6 +134,8 @@ export class EquilateralTriangularPrism extends THREE.Object3D {
   constructor( width = 1, depth = 1, direction ) {
     super();
 
+    this.type = 'EquilateralTriangularPrism';
+
     this.width = width;
     this.depth = depth;
     this.direction = direction;
@@ -118,18 +147,51 @@ export class EquilateralTriangularPrism extends THREE.Object3D {
     this.halfHeight = this.height / 2;
 
     this.x = 0;
-    if ( direction === 'left'  ) { this.x = -this.halfWidth / 2; }
-    if ( direction === 'right' ) { this.x =  this.halfWidth / 2; }
-
     this.angle = 0;
-    if ( direction === 'left'  ) { this.angle =  Math.PI / 3; }
-    if ( direction === 'right' ) { this.angle = -Math.PI / 3; }
+    if ( direction === 'left'  ) { this.transformLeft();  }
+    if ( direction === 'right' ) { this.transformRight(); }
 
-    this.index = 0;
+    // Branching slots.
+    this.left  = undefined;
+    this.right = undefined;
 
+    this.leftIndex  = undefined;
+    this.rightIndex = undefined;
+
+    this.updateTransform();
+  }
+
+  add( object, direction ) {
+    super.add( object );
+
+    if ( direction === 'left'  ) { this.left  = object; }
+    if ( direction === 'right' ) { this.right = object; }
+  }
+
+  updateTransform() {
     this.position.set( this.x, this.halfHeight, 0 );
     this.rotation.z = this.angle;
     this.updateMatrixWorld();
+  }
+
+  setLeft() {
+    this.x = -this.halfWidth / 2;
+    this.angle = Math.PI / 3;
+  }
+
+  setRight() {
+    this.x = this.halfWidth / 2;
+    this.angle = -Math.PI / 3;
+  }
+
+  transformLeft() {
+    this.setLeft();
+    this.updateTransform();
+  }
+
+  transformRight() {
+    this.setRight();
+    this.updateTransform();
   }
 
   /*
@@ -187,26 +249,55 @@ export class EquilateralTriangularPrism extends THREE.Object3D {
     return geometry;
   }
 
-  createBone( geometry ) {
-    const parent = ( this.parent && this.parent.index ) || 0;
+  createDirectionalBone( geometry ) {
+    const parent = getParentBoneIndex( this );
 
     vector.set( this.x, this.halfHeight, 0 );
-    if ( this.parent ) {
-      vector.applyMatrix4( matrix.extractRotation( this.parent.matrixWorld ) );
-    }
+    rotateWorld( this, vector );
 
-    const index = geometry.bones.push({
+    // Return bone index.
+    return geometry.bones.push({
       parent,
       name: 'equilateral-triangular',
       pos: vector.toArray(),
       rotq: [ 0, 0, 0, 1 ]
     }) - 1;
+  }
 
-    this.index = index;
+  createBone( geometry ) {
+    if ( this.left ) {
+      this.setLeft();
+      this.leftIndex = this.createDirectionalBone( geometry );
+    }
+
+    if ( this.right ) {
+      this.setRight();
+      this.rightIndex = this.createDirectionalBone( geometry );
+    }
+
+    // Compute bone weights.
+    let leftWeight  = 0;
+    let rightWeight = 0;
+
+    const finiteLeftIndex  = isFinite( this.leftIndex  );
+    const finiteRightIndex = isFinite( this.rightIndex );
+    if ( finiteLeftIndex && finiteRightIndex ) {
+      leftWeight  = 0.5;
+      rightWeight = 0.5;
+    } else if ( finiteLeftIndex ) {
+      leftWeight  = 1;
+    } else if ( finiteRightIndex ) {
+      rightWeight = 1;
+    }
+
+    const {
+      leftIndex  = 0,
+      rightIndex = 0
+    } = this;
 
     times( 6, () => {
-      geometry.skinIndices.push( new THREE.Vector4( index, 0, 0, 0 ) );
-      geometry.skinWeights.push( new THREE.Vector4( 1, 0, 0, 0 ) );
+      geometry.skinIndices.push( new THREE.Vector4( leftIndex,  rightIndex,  0, 0 ) );
+      geometry.skinWeights.push( new THREE.Vector4( leftWeight, rightWeight, 0, 0 ) );
     });
 
     return geometry;
@@ -217,6 +308,8 @@ export class EquilateralTriangularPrism extends THREE.Object3D {
 export class Pyramid extends THREE.Object3D {
   constructor( width = 1, height = 1, depth = 1 ) {
     super();
+
+    this.type = 'Pyramid';
 
     this.width  = width;
     this.height = height;
@@ -272,15 +365,11 @@ export class Pyramid extends THREE.Object3D {
   }
 
   createBone( geometry ) {
-    const parent = ( this.parent && this.parent.index ) || 0;
-
     vector.set( 0, this.height, 0 );
-    if ( this.parent ) {
-      vector.applyMatrix4( matrix.extractRotation( this.parent.matrixWorld ) );
-    }
+    rotateWorld( this, vector );
 
     const index = geometry.bones.push({
-      parent,
+      parent: getParentBoneIndex( this ),
       name: 'pyramid',
       pos: vector.toArray(),
       rotq: [ 0, 0, 0, 1 ]
@@ -299,16 +388,26 @@ export class Pyramid extends THREE.Object3D {
 
 
 export function transformGeometry( object, geometry ) {
+  const { parent } = object;
+  if ( !parent ) {
+    return geometry;
+  }
+
   const {
-    parent,
+    parent: grandparent,
     matrix,
     matrixWorld
-  } = object;
+  } = parent;
 
-  if ( !parent ) {
+  if ( !grandparent ) {
     matrixWorld.copy( matrix );
   } else {
-    matrixWorld.multiplyMatrices( parent.matrixWorld, matrix );
+    if ( parent.type === 'EquilateralTriangularPrism' ) {
+      if ( object === parent.left  ) { parent.transformLeft();  }
+      if ( object === parent.right ) { parent.transformRight(); }
+    }
+
+    matrixWorld.multiplyMatrices( grandparent.matrixWorld, matrix );
   }
 
   geometry.applyMatrix( matrixWorld );

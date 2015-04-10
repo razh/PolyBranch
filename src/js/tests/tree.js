@@ -23,11 +23,13 @@ function render3d() {
   const trapezoid = new TrapezoidalPrism( 2, 1, 1.5, 1 );
   const triangle = new EquilateralTriangularPrism( 1, 1, 'right' );
   const trapezoidA = new TrapezoidalPrism( 1, 0.75, 1.5, 1 );
-  const pyramid = new Pyramid( 0.75, 2, 1 );
+  const pyramid = new Pyramid( 1, 5, 1 );
+  const pyramidA = new Pyramid( 0.75, 2, 1 );
 
   trapezoid.add( triangle );
-  triangle.add( trapezoidA );
-  trapezoidA.add( pyramid );
+  triangle.add( trapezoidA, 'left' );
+  triangle.add( pyramid, 'right' );
+  trapezoidA.add( pyramidA );
 
   const geometry = new THREE.Geometry();
 
@@ -42,11 +44,7 @@ function render3d() {
 
   trapezoid.traverse( object => {
     const tempGeometry = object.createGeometry();
-    // Do not apply transform to root.
-    if ( object.parent ) {
-      transformGeometry( object.parent, tempGeometry );
-    }
-
+    transformGeometry( object, tempGeometry );
     geometry.merge( tempGeometry );
     object.createBone( geometry );
   });
