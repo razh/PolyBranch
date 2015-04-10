@@ -33,6 +33,60 @@ function getParentBoneIndex( object ) {
   return parent.index;
 }
 
+
+export function transformVertices( object, geometry ) {
+  const { parent } = object;
+  if ( !parent ) {
+    return geometry;
+  }
+
+  const {
+    parent: grandparent,
+    matrix,
+    matrixWorld
+  } = parent;
+
+  if ( !grandparent ) {
+    matrixWorld.copy( matrix );
+  } else {
+    if ( parent.type === 'EquilateralTriangularPrism' ) {
+      if ( object === parent.left  ) { parent.transformLeft();  }
+      if ( object === parent.right ) { parent.transformRight(); }
+    }
+
+    matrixWorld.multiplyMatrices( grandparent.matrixWorld, matrix );
+  }
+
+  geometry.applyMatrix( matrixWorld );
+  return geometry;
+}
+
+
+export function createBase( size ) {
+  const geometry = new THREE.Geometry();
+
+  const halfSize = size / 2;
+
+  geometry.vertices = [
+    // Top-down counter-clockwise from front-left.
+    new THREE.Vector3( -halfSize, 0,  halfSize ),
+    new THREE.Vector3(  halfSize, 0,  halfSize ),
+    new THREE.Vector3(  halfSize, 0, -halfSize ),
+    new THREE.Vector3( -halfSize, 0, -halfSize )
+  ];
+
+  geometry.bones = [
+    {
+      parent: -1,
+      name: 'root',
+      pos: [ 0, 0, 0 ],
+      rotq: [ 0, 0, 0, 1 ]
+    }
+  ];
+
+  return geometry;
+}
+
 /*
   A tree is composed of trapezoids, with branches terminating with triangles.
 
@@ -45,49 +99,50 @@ function getParentBoneIndex( object ) {
   Positive z-axis points outwards.
  */
 export class TrapezoidalPrism extends THREE.Object3D {
-  constructor( bottomWidth = 1, topWidth = 1, height = 1, depth = 1 ) {
+  constructor( width = 1, height = 1, depth = 1 ) {
     super();
 
     this.type = 'TrapezoidalPrism';
 
-    this.bottomWidth = bottomWidth;
-    this.topWidth    = topWidth;
-    this.height      = height;
-    this.depth       = depth;
+    this.width  = width;
+    this.height = height;
+    this.depth  = depth;
 
+    // Vertex offset.
+    this.offset = 0;
+
+    // Bone index.
     this.index = 0;
 
     this.position.set( 0, height, 0 );
     this.updateMatrixWorld();
   }
 
-  createGeometry() {
+  createGeometry( offset ) {
     const geometry = new THREE.Geometry();
 
     const {
-      bottomWidth,
-      topWidth,
+      width,
       height,
-      depth
+      depth,
+      parent
     } = this;
 
-    const halfBottomWidth = bottomWidth / 2;
-    const halfTopWidth    = topWidth    / 2;
-
+    const halfWidth = width / 2;
     const halfDepth = depth / 2;
 
+    this.offset = offset;
+    const parentOffset = parent && parent.offset || 0;
+
     geometry.vertices = [
-      // Bottom counter-clockwise from front-left.
-      new THREE.Vector3( -halfBottomWidth, 0,       halfDepth ),
-      new THREE.Vector3(  halfBottomWidth, 0,       halfDepth ),
-      new THREE.Vector3(  halfBottomWidth, 0,      -halfDepth ),
-      new THREE.Vector3( -halfBottomWidth, 0,      -halfDepth ),
       // Top counter-clockwise from front-left.
-      new THREE.Vector3( -halfTopWidth,    height,  halfDepth ),
-      new THREE.Vector3(  halfTopWidth,    height,  halfDepth ),
-      new THREE.Vector3(  halfTopWidth,    height, -halfDepth ),
-      new THREE.Vector3( -halfTopWidth,    height, -halfDepth )
+      new THREE.Vector3( -halfWidth, height,  halfDepth ),
+      new THREE.Vector3(  halfWidth, height,  halfDepth ),
+      new THREE.Vector3(  halfWidth, height, -halfDepth ),
+      new THREE.Vector3( -halfWidth, height, -halfDepth )
     ];
+
+    transformVertices( this, geometry );
 
     geometry.faces = [
       // Front.
@@ -102,7 +157,13 @@ export class TrapezoidalPrism extends THREE.Object3D {
       // Right.
       new THREE.Face3( 1, 2, 6 ),
       new THREE.Face3( 1, 6, 5 )
-    ];
+    ].map( face => {
+      // First four vertices are from parent geometry.
+      face.a += face.a < 4 ? parentOffset : offset;
+      face.b += face.b < 4 ? parentOffset : offset;
+      face.c += face.c < 4 ? parentOffset : offset;
+      return face;
+    });
 
     return geometry;
   }
@@ -120,7 +181,7 @@ export class TrapezoidalPrism extends THREE.Object3D {
 
     this.index = index;
 
-    times( 8, () => {
+    times( 4, () => {
       geometry.skinIndices.push( new THREE.Vector4( index, 0, 0, 0 ) );
       geometry.skinWeights.push( new THREE.Vector4( 1, 0, 0, 0 ) );
     });
@@ -151,10 +212,14 @@ export class EquilateralTriangularPrism extends THREE.Object3D {
     if ( direction === 'left'  ) { this.transformLeft();  }
     if ( direction === 'right' ) { this.transformRight(); }
 
+    // Vertex offset.
+    this.offset = 0;
+
     // Branching slots.
     this.left  = undefined;
     this.right = undefined;
 
+    // Bone offsets.
     this.leftIndex  = undefined;
     this.rightIndex = undefined;
 
@@ -206,26 +271,25 @@ export class EquilateralTriangularPrism extends THREE.Object3D {
         0     1
     Only the front and back triangles are visible.
    */
-  createGeometry() {
+  createGeometry( offset ) {
     const geometry = new THREE.Geometry();
 
     const {
       height,
-      halfWidth,
       halfDepth,
       direction
     } = this;
 
+    this.offset = offset;
+    const parentOffset = parent && parent.offset || 0;
+
     geometry.vertices = [
-      // Bottom counter-clockwise from bottom-left.
-      new THREE.Vector3( -halfWidth, 0,  halfDepth ),
-      new THREE.Vector3(  halfWidth, 0,  halfDepth ),
-      new THREE.Vector3(  halfWidth, 0, -halfDepth ),
-      new THREE.Vector3( -halfWidth, 0, -halfDepth ),
       // Top, front-to-back.
       new THREE.Vector3( 0, height,  halfDepth ),
       new THREE.Vector3( 0, height, -halfDepth )
     ];
+
+    transformVertices( this, geometry );
 
     geometry.faces = [
       // Front.
@@ -245,6 +309,14 @@ export class EquilateralTriangularPrism extends THREE.Object3D {
       geometry.faces.push( new THREE.Face3( 0, 4, 3 ) );
       geometry.faces.push( new THREE.Face3( 4, 5, 3 ) );
     }
+
+    geometry.faces = geometry.faces.map( face => {
+      // First four vertices are from parent geometry.
+      face.a += face.a < 4 ? parentOffset : offset;
+      face.b += face.b < 4 ? parentOffset : offset;
+      face.c += face.c < 4 ? parentOffset : offset;
+      return face;
+    });
 
     return geometry;
   }
@@ -295,7 +367,7 @@ export class EquilateralTriangularPrism extends THREE.Object3D {
       rightIndex = 0
     } = this;
 
-    times( 6, () => {
+    times( 2, () => {
       geometry.skinIndices.push( new THREE.Vector4( leftIndex,  rightIndex,  0, 0 ) );
       geometry.skinWeights.push( new THREE.Vector4( leftWeight, rightWeight, 0, 0 ) );
     });
@@ -306,49 +378,33 @@ export class EquilateralTriangularPrism extends THREE.Object3D {
 
 
 export class Pyramid extends THREE.Object3D {
-  constructor( width = 1, height = 1, depth = 1 ) {
+  constructor( height = 1 ) {
     super();
 
     this.type = 'Pyramid';
-
-    this.width  = width;
     this.height = height;
-    this.depth  = depth;
 
-    this.halfWidth  = width  / 2;
-    this.halfHeight = height / 2;
-    this.halfDepth  = depth  / 2;
+    // Vertex offset.
+    this.offset = 0;
 
+    // Bone index.
     this.index = 0;
   }
 
-  createGeometry() {
+  createGeometry( offset ) {
     const geometry = new THREE.Geometry();
 
     const {
       height,
-      halfWidth,
-      halfDepth
+      parent
     } = this;
 
-    /*
-       3       2
-        o-----o
-        |     |  right
-        |     |
-        o-----o
-       0       1
-         front
-     */
-    geometry.vertices = [
-      // Top-down counter-clockwise from front-left.
-      new THREE.Vector3( -halfWidth, 0,  halfDepth ),
-      new THREE.Vector3(  halfWidth, 0,  halfDepth ),
-      new THREE.Vector3(  halfWidth, 0, -halfDepth ),
-      new THREE.Vector3( -halfWidth, 0, -halfDepth ),
-      // Top.
-      new THREE.Vector3( 0, height, 0 )
-    ];
+    this.offset = offset;
+    const parentOffset = parent && parent.offset || 0;
+
+    // Top.
+    geometry.vertices.push( new THREE.Vector3( 0, height, 0 ) );
+    transformVertices( this, geometry );
 
     geometry.faces = [
       // Front.
@@ -359,7 +415,13 @@ export class Pyramid extends THREE.Object3D {
       new THREE.Face3( 2, 3, 4 ),
       // Left.
       new THREE.Face3( 3, 0, 4 )
-    ];
+    ].map( face => {
+      // First four vertices are from parent geometry.
+      face.a += face.a < 4 ? parentOffset : offset;
+      face.b += face.b < 4 ? parentOffset : offset;
+      face.c += face.c < 4 ? parentOffset : offset;
+      return face;
+    });
 
     return geometry;
   }
@@ -377,41 +439,13 @@ export class Pyramid extends THREE.Object3D {
 
     this.index = index;
 
-    times( 5, () => {
+    times( 1, () => {
       geometry.skinIndices.push( new THREE.Vector4( index, 0, 0 ) );
       geometry.skinWeights.push( new THREE.Vector4( 1, 0, 0, 0 ) );
     });
 
     return geometry;
   }
-}
-
-
-export function transformGeometry( object, geometry ) {
-  const { parent } = object;
-  if ( !parent ) {
-    return geometry;
-  }
-
-  const {
-    parent: grandparent,
-    matrix,
-    matrixWorld
-  } = parent;
-
-  if ( !grandparent ) {
-    matrixWorld.copy( matrix );
-  } else {
-    if ( parent.type === 'EquilateralTriangularPrism' ) {
-      if ( object === parent.left  ) { parent.transformLeft();  }
-      if ( object === parent.right ) { parent.transformRight(); }
-    }
-
-    matrixWorld.multiplyMatrices( grandparent.matrixWorld, matrix );
-  }
-
-  geometry.applyMatrix( matrixWorld );
-  return geometry;
 }
 
 

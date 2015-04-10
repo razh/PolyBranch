@@ -3,8 +3,7 @@ import THREE from 'three';
 import Tree, {
   TrapezoidalPrism,
   EquilateralTriangularPrism,
-  Pyramid,
-  transformGeometry
+  Pyramid
 } from './../tree/tree';
 
 function render3d() {
@@ -43,8 +42,8 @@ function render3d() {
   ];
 
   trapezoid.traverse( object => {
-    const tempGeometry = object.createGeometry();
-    transformGeometry( object, tempGeometry );
+    const offset = geometry.vertices.length;
+    const tempGeometry = object.createGeometry( offset );
     geometry.merge( tempGeometry );
     object.createBone( geometry );
   });
