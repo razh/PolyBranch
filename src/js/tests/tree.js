@@ -30,15 +30,21 @@ function render3d() {
   const base = new Base( 2 );
   const trapezoid = new TrapezoidalPrism( 1, 1.5, 1.5 );
   const triangle = new EquilateralTriangularPrism( 1, 1 );
-  const trapezoidA = new TrapezoidalPrism( 0.75, 1.5, 0.5 );
-  const pyramid = new Pyramid( 5, 1 );
-  const pyramidA = new Pyramid( 2, 1 );
+
+  const pyramidRight = new Pyramid( 5 );
+
+  const trapezoidLeft = new TrapezoidalPrism( 0.75, 1.5, 0.5 );
+  const triangleLeft = new EquilateralTriangularPrism( 1, 1 );
+  const pyramidLeftLeft = new Pyramid( 2 );
+  const pyramidLeftRight = new Pyramid( 3 );
 
   base.add( trapezoid );
   trapezoid.add( triangle );
-  triangle.add( trapezoidA, 'left' );
-  triangle.add( pyramid, 'right' );
-  trapezoidA.add( pyramidA );
+  triangle.add( trapezoidLeft, 'left' );
+  triangle.add( pyramidRight, 'right' );
+  trapezoidLeft.add( triangleLeft );
+  triangleLeft.add( pyramidLeftLeft, 'left' );
+  triangleLeft.add( pyramidLeftRight, 'right' );
 
   const geometry = new THREE.Geometry();
   geometry.bones = [];
@@ -67,6 +73,32 @@ function render3d() {
   skeletonHelper.material.linewidth = 4;
   mesh.add( skeletonHelper );
 
+  // Traverse bones and mark direction based on relative x-axis position.
+  mesh.skeleton.bones.forEach( bone => {
+    const { parent } = bone;
+    if ( !parent ) {
+      return;
+    }
+
+    const grandparent = parent.parent;
+    if ( !grandparent ) {
+      if ( bone.position.x < parent.position.x ) { bone.direction = 'left';  }
+      if ( bone.position.x > parent.position.x ) { bone.direction = 'right'; }
+      return;
+    }
+
+    const { x, y } = bone.position;
+    const { x: x1, y: y1 } = parent.position;
+    const { x: x0, y: y0 } = grandparent.position;
+
+    const cross = ( x - x0 ) * ( y1 - y0 ) - ( y - y0 ) * ( x1 - x0 );
+
+    if ( cross < 0 ) { bone.direction = 'left';  }
+    if ( cross > 0 ) { bone.direction = 'right'; }
+  });
+
+  const scale = new THREE.Vector3();
+
   function animate() {
     // Rotate camera instead of mesh to prevent problems with SkeletonHelper
     // transforms.
@@ -74,8 +106,26 @@ function render3d() {
     camera.position.x = cameraRadius * Math.cos( time );
     camera.position.z = cameraRadius * Math.sin( time );
     camera.lookAt( mesh.position );
-    skeletonHelper.update();
 
+    const cos = Math.cos( time );
+
+    const angle  = 0.5 * ( cos - 1 ) * Math.PI / 2;
+    const length = 0.5 * ( cos + 1 ) * 2;
+
+    mesh.skeleton.bones.forEach( ( bone, index ) => {
+      scale.setFromMatrixScale( bone.parent.matrixWorld );
+      bone.scale.setLength( length / scale.length() );
+
+      // Set angle if not base.
+      if ( index > 1 ) {
+        if ( bone.direction === 'left'  ) { bone.rotation.z =  angle; }
+        if ( bone.direction === 'right' ) { bone.rotation.z = -angle; }
+      }
+
+      bone.updateMatrixWorld();
+    });
+
+    skeletonHelper.update();
     renderer.render( scene, camera );
     requestAnimationFrame( animate );
   }
