@@ -160,11 +160,83 @@ function songD() {
   onKeyUp( synth );
 }
 
+function songE() {
+  const synth = new Tone.PolySynth( 4, Tone.FMSynth );
+  const lfo = new Tone.LFO( 8, 0.1, 1 );
+  lfo.oscillator.type = 'square';
+  lfo.start();
+
+  const gain = Tone.context.createGain();
+  const eq = new Tone.EQ( 4, -20, 0 ).toMaster();
+  gain.connect( eq );
+
+  synth.connect( gain );
+  lfo.connect( gain.gain );
+
+  synth.volume.value = -10;
+
+  synth.voices.forEach( voice => {
+    voice.carrier.oscillator.type = 'square';
+    voice.modulator.oscillator.type = 'sine';
+  });
+
+  onKeyDown( synth );
+  onKeyUp( synth );
+}
+
+function songF() {
+  Tone.Transport.bpm.value = 90;
+
+  const kick = new Tone.MonoSynth({
+    portamento: 0.00,
+    oscillator: {
+      type: 'square'
+    },
+    filter: {
+      Q: 2,
+      type: 'bandpass',
+      rolloff: -12
+    },
+    envelope: {
+      attack: 0.01,
+      decay: 0.2,
+      sustain: 0.0,
+      release: 0.2
+    },
+    filterEnvelope: {
+      attack: 0.01,
+      decay: 0.2,
+      sustain: 1,
+      release: 0.4,
+      min: 3000,
+      max: 30
+    }
+  });
+
+  const eq = new Tone.EQ( 4, -20, 0 );
+
+  const compress = new Tone.Compressor({
+    threshold: -30,
+    ratio: 6,
+    attack: 0.01,
+    release: 0.01
+  }).toMaster();
+
+  kick.connect( eq );
+  eq.connect( compress );
+
+  document.addEventListener( 'keydown', () =>
+    kick.triggerAttackRelease( 'C2', '8n' )
+  );
+}
+
 const songs = {
   songA,
   songB,
   songC,
-  songD
+  songD,
+  songE,
+  songF
 };
 
 export default songs;
