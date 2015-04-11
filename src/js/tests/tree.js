@@ -1,6 +1,7 @@
 import THREE from 'three';
 
 import Tree, {
+  Base,
   TrapezoidalPrism,
   EquilateralTriangularPrism,
   Pyramid
@@ -19,38 +20,44 @@ function render3d() {
   camera.position.set( 0, 0, cameraRadius );
   scene.add( camera );
 
-  const trapezoid = new TrapezoidalPrism( 2, 1, 1.5, 1 );
-  const triangle = new EquilateralTriangularPrism( 1, 1, 'right' );
-  const trapezoidA = new TrapezoidalPrism( 1, 0.75, 1.5, 1 );
-  const pyramid = new Pyramid( 1, 5, 1 );
-  const pyramidA = new Pyramid( 0.75, 2, 1 );
+  scene.add( new THREE.AmbientLight( '#222' ) );
 
+  const light = new THREE.DirectionalLight( '#fff' );
+  light.position.set( 0, 4, 4 );
+  scene.add( light );
+
+  // Geometry.
+  const base = new Base( 2 );
+  const trapezoid = new TrapezoidalPrism( 1, 1.5, 1.5 );
+  const triangle = new EquilateralTriangularPrism( 1, 1 );
+  const trapezoidA = new TrapezoidalPrism( 0.75, 1.5, 0.5 );
+  const pyramid = new Pyramid( 5, 1 );
+  const pyramidA = new Pyramid( 2, 1 );
+
+  base.add( trapezoid );
   trapezoid.add( triangle );
   triangle.add( trapezoidA, 'left' );
   triangle.add( pyramid, 'right' );
   trapezoidA.add( pyramidA );
 
   const geometry = new THREE.Geometry();
+  geometry.bones = [];
 
-  geometry.bones = [
-    {
-      parent: -1,
-      name: 'root',
-      pos: [ 0, 0, 0 ],
-      rotq: [ 0, 0, 0, 1 ]
-    }
-  ];
-
-  trapezoid.traverse( object => {
+  base.traverse( object => {
     const offset = geometry.vertices.length;
     const tempGeometry = object.createGeometry( offset );
-    geometry.merge( tempGeometry );
+    geometry.vertices.push( ...tempGeometry.vertices );
+    geometry.faces.push( ...tempGeometry.faces );
     object.createBone( geometry );
   });
 
-  const material = new THREE.MeshBasicMaterial({
+  geometry.computeFaceNormals();
+  geometry.computeVertexNormals();
+
+  const material = new THREE.MeshPhongMaterial({
+    // wireframe: true,
     skinning: true,
-    wireframe: true
+    shading: THREE.FlatShading
   });
 
   const mesh = new THREE.SkinnedMesh( geometry, material );
