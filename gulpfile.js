@@ -6,20 +6,25 @@ var SOURCE_DIR = './src';
 var BUILD_DIR = 'dist';
 
 var _ = require('lodash');
+var argv = require('yargs').argv;
 var babelify = require('babelify');
 var browserify = require('browserify');
 var browserSync = require('browser-sync');
+var bundleCollapser = require('bundle-collapser/plugin');
 var del = require('del');
 var glslify = require('glslify');
+var nib = require('nib');
 var runSequence = require('run-sequence');
 var source = require('vinyl-source-stream');
 var watchify = require('watchify');
 
 var gulp = require('gulp');
-var util = require('gulp-util');
+var $ = require('gulp-load-plugins')();
+
+var production = false;
 
 function onError(error) {
-  util.log(error.message);
+  $.util.log(error.message);
   /*jshint validthis:true*/
   this.emit('end');
 }
@@ -36,10 +41,16 @@ gulp.task('browser-sync', function() {
 
 function jsTask(name, src, dest) {
   return gulp.task(name, function() {
-    var bundler = watchify(browserify(SOURCE_DIR + src,
+    var bundler = browserify(SOURCE_DIR + src,
       _.assign({
-        debug: true
-      }, watchify.args)));
+        debug: argv.debug
+      }, production ? {} : watchify.args));
+
+    if (!production) {
+      bundler = watchify(bundler);
+    } else {
+      bundler.plugin(bundleCollapser);
+    }
 
     bundler
       .transform(babelify)
@@ -49,12 +60,14 @@ function jsTask(name, src, dest) {
       return bundler.bundle()
         .on('error', onError)
         .pipe(source(dest))
+        .pipe($.buffer())
+        .pipe($.if(production, $.uglify()))
         .pipe(gulp.dest(BUILD_DIR))
-        .pipe(browserSync.reload({stream: true, once: true}));
+        .pipe($.if(!production, browserSync.reload({stream: true, once: true})));
     }
 
     bundler
-      .on('log', util.log)
+      .on('log', $.util.log)
       .on('update', rebundle);
 
     return rebundle();
@@ -71,14 +84,21 @@ gulp.task('html', function() {
 });
 
 gulp.task('css', function() {
-  return gulp.src(SOURCE_DIR + '/css/*.css')
+  return gulp.src(SOURCE_DIR + '/css/*.styl')
+    .pipe($.stylus({
+      'include css': true,
+      use: [nib()]
+    }))
+    .on('error', onError)
+    .pipe($.autoprefixer())
+    .pipe($.if(production, $.csso()))
     .pipe(gulp.dest(BUILD_DIR))
-    .pipe(browserSync.reload({stream: true}));
+    .pipe($.if(!production, browserSync.reload({stream: true})));
 });
 
 gulp.task('watch', function() {
   gulp.watch([SOURCE_DIR + '/*.html'], ['html']);
-  gulp.watch([SOURCE_DIR + '/css/*.css'], ['css']);
+  gulp.watch([SOURCE_DIR + '/css/*.styl'], ['css']);
 });
 
 gulp.task('clean', del.bind(null, [BUILD_DIR]));
@@ -87,6 +107,15 @@ gulp.task('default', ['clean'], function(cb) {
   return runSequence(
     ['html', 'css', 'js', 'tests'],
     ['browser-sync', 'watch'],
+    cb
+  );
+});
+
+gulp.task('build', ['clean'], function(cb) {
+  production = true;
+
+  return runSequence(
+    ['html', 'css', 'js'],
     cb
   );
 });

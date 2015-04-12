@@ -30,12 +30,23 @@
     "babelify": "^6.0.2",
     "browser-sync": "^2.5.3",
     "browserify": "^9.0.8",
+    "bundle-collapser": "^1.1.4",
     "del": "^1.1.1",
     "glslify": "^2.1.1",
     "gulp": "^3.8.11",
+    "gulp-autoprefixer": "^2.1.0",
+    "gulp-buffer": "0.0.2",
+    "gulp-csso": "^1.0.0",
+    "gulp-if": "^1.2.5",
+    "gulp-load-plugins": "^0.10.0",
+    "gulp-stylus": "^2.0.1",
+    "gulp-uglify": "^1.2.0",
     "gulp-util": "^3.0.4",
+    "nib": "^1.1.0",
+    "normalize.css": "^3.0.3",
     "run-sequence": "^1.0.2",
     "vinyl-source-stream": "^1.1.0",
-    "watchify": "^3.1.0"
+    "watchify": "^3.1.0",
+    "yargs": "^3.7.1"
   }
 }
