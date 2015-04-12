@@ -1,14 +1,18 @@
+import $ from 'jquery';
+
+window.jQuery = window.$ = $;
+require('velocity-animate');
+
 import Game from './game';
 import createIcon from './icon';
 
 createIcon();
 
-const LONG_DURATION = 1000;
+const DURATION      = 300;
+const LONG_DURATION = 600;
 
 let firstPlaythrough = true;
 let playing = false;
-
-const $ = document.querySelector.bind( document );
 
 const $mainMenu        = $( '#main-menu' );
 const $start           = $( '#main-menu #start' );
@@ -22,143 +26,106 @@ const $gameOverMenu      = $( '#game-over-menu' );
 const $gameOverContent   = $( '#game-over-menu .content' );
 const $gameOverScore     = $( '#game-over-menu #score' );
 const $gameOverHighScore = $( '#game-over-menu #high-score' );
-const $nextLevel         = $( '#game-over-menu #next-level' );
+const $nextLevel         = $( '#game-over-menu #next-level span' );
 const $retry             = $( '#game-over-menu #retry' );
 
 const $hud   = $( '#hud' );
 const $score = $( '#hud #score' );
 const $level = $( '#hud #level span' );
 
-function show( el ) {
-  el.style.display = '';
-  return el;
-}
-
-function hide( el ) {
-  el.style.display = 'none';
-  return el;
-}
-
-function css( el, props ) {
-  Object.keys( props ).forEach( key => el.style.key = props[ key ] );
-  return el;
-}
-
-function onTransitionEnd( el, callback ) {
-  if ( el.style.transition !== undefined ) {
-    el.addEventListener( 'transitionend', callback );
-  } else if ( el.style.webkitTransition !== undefined ) {
-    el.addEventListener( 'webkitTransitionEnd', callback );
-  }
-}
-
-// Returns a function that accepts an element and a callback that is called
-// on "transitionend".
-function addClass( className ) {
-  return ( el, callback ) => {
-    el.classList.add( className );
-    onTransitionEnd( el, callback );
-  };
-}
-
-const fadeIn  = addClass( 'fade-in' );
-const fadeOut = addClass( 'fade-out');
-
-const fadeOutLong = addClass( 'fade-out--long');
-
 // Initialize.
-const game = new Game( $( 'canvas' ) );
-fadeOut( $loading, () => hide( $loading ) );
+const game = new Game( $( 'canvas' )[0] );
+$loading.fadeOut( DURATION, () => $loading.hide() );
 
-$start.addEventListener( 'click', () => {
+$start.on( 'click', () => {
   if( !playing ) {
     game.emit( 'start', false );
     playing = true;
   }
 });
 
-$retry.addEventListener( 'click', () => {
+$retry.on( 'click', () => {
   if( !playing ) {
     newGame();
     playing = true;
   }
 });
 
-document.addEventListener( 'keydown', () => fadeOut( $arrowKeys ));
+$( document ).on( 'keydown', () => $arrowKeys.fadeOut( DURATION ) );
 
 game.on( 'start', fromProcessing => {
   if ( !fromProcessing ) {
     game.toggle();
   }
 
-  fadeOut( $mainMenuContent, () => {
+  $mainMenuContent.fadeOut( DURATION, () => {
     if ( firstPlaythrough ) {
       firstPlaythrough = false;
-      fadeIn( $arrowKeys );
+      $arrowKeys.fadeIn();
     }
 
-    fadeIn( $hud );
-    fadeOut( $mainMenu );
+    $hud.fadeIn( DURATION);
+    $mainMenu.fadeOut( DURATION );
   });
 });
 
 function newGame() {
   game.reset();
 
-  $score.textContent = 0;
-  $level.textContent = 1;
+  $score.text( 0 );
+  $level.text( 1 );
 
-  fadeOut( $gameOverContent, () => {
-    hide( $gameOverContent );
-    fadeOut( $gameOverMenu, () => {
-      hide( $gameOverMenu );
-      fadeIn( $hud );
+  $gameOverContent.velocity( { opacity: 0 }, DURATION, () => {
+    $gameOverContent.hide();
+    $gameOverMenu.velocity( { opacity: 0 }, DURATION, () => {
+      $gameOverMenu.hide();
+      $hud.fadeIn( DURATION );
       game.toggle();
     });
   });
 }
 
-game.on( 'score', score => $score.textContent = score.toLocaleString() );
-
-game.on( 'level', () =>
-  $level.textContent = parseInt( $level.textContent ) + 1
-);
+game.on( 'score', score => $score.text( score.toLocaleString() ) );
+game.on( 'level', () => $level.text( parseInt( $level.text() ) + 1 ) );
 
 game.on( 'end', score => {
   playing = false;
 
-  show( $flash );
-  hide( $hud );
+  $hud.hide();
+  $flash.show()
+    .delay( LONG_DURATION )
+    .velocity( { opacity: 0 }, DURATION, () => {
+      $flash.hide()
+        .css( 'opacity', 1 );
 
-  setTimeout( () => {
-    fadeOutLong( $flash, () => {
-      hide( $flash );
-      css( $flash, { opacity: 1 } );
-
-      $gameOverScore.innerHTML = score.toLocaleString() +
-        '<span id="L">L' + $level.textContent + '</span>';
+      $gameOverScore.html(
+        score.toLocaleString() +
+        '<span id="L">L' + $level.text() + '</span>'
+      );
 
       const { highScore } = localStorage;
 
       if( highScore === undefined || score > parseInt( highScore ) ) {
-        $gameOverHighScore.textContent = 'NEW RECORD!';
+        $gameOverHighScore.text( 'NEW RECORD!' );
         localStorage.highScore = score;
-        localStorage.highLevel = $level.textContent;
+        localStorage.highLevel = $level.text();
       } else {
-        $gameOverHighScore.innerHTML = 'PERSONAL BEST: ' +
+        $gameOverHighScore.html(
+          'PERSONAL BEST: ' +
           parseInt( highScore ).toLocaleString() +
-          '<span id="L">L' + localStorage.highLevel + '</span>';
+          '<span id="L">L' + localStorage.highLevel + '</span>'
+        );
       }
 
-      $nextLevel.textContent = (
-        game.getNextScore( parseInt( $level.textContent ) ) + 1000
-      ).toLocaleString();
+      $nextLevel.text(
+        ( game.getNextScore( parseInt( $level.text(), 10 ) ) + 1000 )
+          .toLocaleString()
+      );
 
-      show( $gameOverMenu );
-      fadeIn( $gameOverMenu, () => {
-        show( $gameOverContent );
-        fadeIn( $gameOverContent );
-      });
+      $gameOverMenu.show()
+        .velocity( { opacity: 1 }, DURATION, () => {
+          $gameOverContent.show()
+            .velocity( { opacity: 1 }, DURATION );
+        });
     });
-  }, LONG_DURATION );
 });
