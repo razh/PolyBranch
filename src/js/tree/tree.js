@@ -1,4 +1,5 @@
 import THREE from 'three';
+import generate from './generate';
 
 import {
   Base,
@@ -15,23 +16,8 @@ export default class Tree {
     geometry.bones = [];
 
     const base = new Base( 2 );
-    const trapezoid = new TrapezoidalPrism( 1, 1.5, 1.5 );
-    const triangle = new EquilateralTriangularPrism( 1, 1 );
-
-    const pyramidRight = new Pyramid( 5 );
-
-    const trapezoidLeft = new TrapezoidalPrism( 0.75, 1.5, 0.5 );
-    const triangleLeft = new EquilateralTriangularPrism( 1, 1 );
-    const pyramidLeftLeft = new Pyramid( 2 );
-    const pyramidLeftRight = new Pyramid( 3 );
-
+    const trapezoid = generate();
     base.add( trapezoid );
-    trapezoid.add( triangle );
-    triangle.add( trapezoidLeft, 'left' );
-    triangle.add( pyramidRight, 'right' );
-    trapezoidLeft.add( triangleLeft );
-    triangleLeft.add( pyramidLeftLeft, 'left' );
-    triangleLeft.add( pyramidLeftRight, 'right' );
 
     base.traverse( object => {
       const offset = geometry.vertices.length;

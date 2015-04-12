@@ -13,7 +13,7 @@ function render3d() {
   const scene = new THREE.Scene();
 
   const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight );
-  const cameraRadius = 8;
+  const cameraRadius = 12;
   camera.position.set( 0, 0, cameraRadius );
   scene.add( camera );
 
@@ -31,6 +31,8 @@ function render3d() {
   skeletonHelper.material.linewidth = 4;
   mesh.add( skeletonHelper );
 
+  const scale = new THREE.Vector3();
+
   function animate() {
     // Rotate camera instead of mesh to prevent problems with SkeletonHelper
     // transforms.
@@ -46,7 +48,8 @@ function render3d() {
     const length = t * Math.sqrt( 3 );
 
     mesh.skeleton.bones.forEach( ( bone, index ) => {
-      bone.scale.setLength( length );
+      scale.setFromMatrixScale( bone.parent.matrixWorld );
+      bone.scale.setLength( length / scale.length() );
       if ( index > 1 ) {
         bone.rotation.z = bone.startAngle * ( 1 - t );
       }
