@@ -1,12 +1,15 @@
 body {
-  background-color: #333;
-  color: #666;
+  background-color: #eee;
+  color: #333;
 
-  font-family: Lucida Grande, Lucida Sans, Arial, Helvetica Neue, Verdana, Geneva, sans-serif;
+  font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
   font-size: 11px;
   font-weight: normal;
   text-decoration: none;
   line-height: 1.5em;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a img {
@@ -27,11 +30,13 @@ h1,
 h2,
 h3,
 h4,
-button {
-  color: #333;
-  font-family: 'Wire One', sans-serif;
-  letter-spacing: 1px;
+h5,
+h6 {
+  color: #222;
+  opacity: 0.75;
+  font-weight: 100;
   text-shadow: 0 1px 0 #fff;
+  text-transform: uppercase;
 }
 
 .button {
@@ -76,7 +81,7 @@ button {
 
 #loading h2 {
   margin-top: 290px;
-  font-size: 80px;
+  font-size: 64px;
   line-height: 1em;
   text-align: center;
 }
@@ -92,7 +97,6 @@ button {
 
 #main-menu {
   text-align: center;
-  background: rgba( 100, 100, 100, 0.2 );
 }
 
 #main-menu h1 {
@@ -182,7 +186,6 @@ button {
 
 canvas {
   display: block;
-  margin-bottom: 1.5em;
   outline: 0;
 }
 
@@ -204,17 +207,11 @@ canvas {
 }
 
 #content {
-  margin: 50px auto 0 auto;
-  padding: 25px 25px 15px 25px;
+  margin: 48px auto 0 auto;
 
   width: 800px;
   min-width: 300px;
   overflow: auto;
 
-  background-color: #3d3d3d;
-
-  border-top: 1px solid #444;
-  border-left: 1px solid #444;
-  border-bottom: 1px solid #333;
-  border-right: 1px solid #333;
+  border: 1px solid #888;
 }

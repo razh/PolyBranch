@@ -192,8 +192,7 @@ export default class Game extends EventEmitter {
       originY
     } = this;
 
-    ctx.fillStyle = this.background;
-    ctx.fillRect( 0, 0, canvas.width, canvas.height );
+    ctx.clearRect( 0, 0, canvas.width, canvas.height );
 
     if ( keys[0] || keys[1] || keys[2] || keys[3] ) {
       player.hue += speed * 100;
