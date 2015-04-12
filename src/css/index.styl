@@ -1,0 +1,189 @@
+@require 'nib'
+@require './../../node_modules/normalize.css/normalize.css'
+
+body
+  background-color #eee
+  color #333
+
+  font-family "Helvetica Neue", Arial, Helvetica, sans-serif
+  font-size 11px
+  font-weight normal
+  text-decoration none
+  line-height 1.5em
+
+  -webkit-font-smoothing antialiased
+  -moz-osx-font-smoothing grayscale
+
+a img
+  border 0 solid transparent
+
+a
+a:link
+a:visited
+a:active
+a:hover
+  color #ccc
+  cursor pointer
+  text-decoration underline
+
+h1
+h2
+h3
+h4
+h5
+h6
+  color #222
+  opacity 0.75
+  font-weight 100
+  text-shadow 0 1px 0 #fff
+  text-transform uppercase
+
+.button
+  appearance none
+  color #333
+  font-size 50px
+  line-height 1em
+  text-decoration none
+
+  &:hover
+    color #633d3d
+    text-decoration none
+
+.fade-in
+  opacity 1
+  will-change opacity
+  transition opacity 300ms
+
+.fade-out
+  opacity 0
+  will-change opacity
+  transition opacity 300ms
+
+.fade-out--long
+  opacity 0
+  will-change opacity
+  transition opacity 1000ms
+
+#game-wrapper
+  position relative
+
+#loading
+  width 100%
+  height 100%
+  background #eee
+
+  h2
+    margin-top 290px
+    font-size 64px
+    line-height 1em
+    text-align center
+
+#arrow-keys
+  position absolute
+  display none
+  width 338px
+  top 300px
+  left 231px
+  opacity 0.7
+
+#main-menu
+  text-align center
+
+#main-menu h1
+  margin-top 55px
+  margin-bottom 348px
+  font-size 120px
+  line-height 1em
+
+#game-over-menu
+  display none
+  background rgba( #666, 0.2 )
+  opacity 0
+  text-align center
+
+  .content
+    display none
+    margin 0 auto
+    width 400px
+    height 550px
+    background rgba( #eee, 0.7 )
+    opacity 0
+
+  #score
+    margin-bottom 0
+    padding-top 20px
+    font-size 120px
+    line-height 1em
+
+    #L
+      font-size 60px
+
+  #high-score
+    margin-top -20px
+    margin-bottom 230px
+    font-size 30px
+    line-height 1em
+
+    #L
+      font-size 20px
+
+  #next-level
+    font-size 20px
+    line-height 1em
+
+#hud
+  position absolute
+  display none
+  width 100%
+  top 0
+  left 0
+
+  #score
+    float left
+    margin 20px 0 0 20px
+    font-size 70px
+    line-height 1em
+
+  #level
+    float right
+    margin 20px 20px 0 0
+    font-size 70px
+    line-height 1em
+
+.overlay
+  position absolute
+  top 0
+  left 0
+  width 100%
+  height 100%
+
+#flash
+  display none
+  background #fff
+
+canvas
+  display block
+  outline 0
+
+#page
+  display none
+  color #eee
+
+  h1
+    color #eee
+    font-size 60px
+    line-height 1em
+    text-shadow none
+
+  p
+    font-size 16px
+    line-height 22px
+
+#content
+  margin 48px auto 0 auto
+
+  width 800px
+  min-width 300px
+  overflow auto
+
+  border 1px solid #888
