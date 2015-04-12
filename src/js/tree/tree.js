@@ -164,8 +164,8 @@ export class Base extends THREE.Object3D {
     ];
 
     times( 4, () => {
-      geometry.skinIndices.push( new THREE.Vector4() );
-      geometry.skinWeights.push( new THREE.Vector4() );
+      geometry.skinIndices.push( new THREE.Vector4( 0, 0, 0, 0 ) );
+      geometry.skinWeights.push( new THREE.Vector4( 1, 0, 0, 0 ) );
     });
 
     return geometry;
@@ -389,14 +389,12 @@ export class EquilateralTriangularPrism extends THREE.Object3D {
   }
 
   createDirectionalBone( geometry ) {
-    const parent = getParentBoneIndex( this );
-
     vector.set( this.x, this.halfHeight, 0 );
     rotateWorld( this, vector );
 
     // Return bone index.
     return geometry.bones.push({
-      parent,
+      parent: getParentBoneIndex( this ),
       name: 'equilateral-triangular',
       pos: vector.toArray(),
       rotq: [ 0, 0, 0, 1 ]

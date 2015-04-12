@@ -1,5 +1,7 @@
 import THREE from 'three';
 
+import { PI2 } from './../math';
+
 import Tree, {
   Base,
   TrapezoidalPrism,
@@ -73,8 +75,12 @@ function render3d() {
   skeletonHelper.material.linewidth = 4;
   mesh.add( skeletonHelper );
 
-  // Traverse bones and mark direction based on relative x-axis position.
+  // Traverse bones and determine start heading angle.
+  const vector = new THREE.Vector3();
+
   mesh.skeleton.bones.forEach( bone => {
+    bone.startAngle = 0;
+
     const { parent } = bone;
     if ( !parent ) {
       return;
@@ -82,22 +88,31 @@ function render3d() {
 
     const grandparent = parent.parent;
     if ( !grandparent ) {
-      if ( bone.position.x < parent.position.x ) { bone.direction = 'left';  }
-      if ( bone.position.x > parent.position.x ) { bone.direction = 'right'; }
       return;
     }
 
-    const { x, y } = bone.position;
-    const { x: x1, y: y1 } = parent.position;
-    const { x: x0, y: y0 } = grandparent.position;
+    /*
+      (x, y)
+        o
+          \
+           \  (x1, y1)
+            o
+            |
+            |
+            o (x0, y0)
+     */
+
+    const { x, y } = vector.setFromMatrixPosition( bone.matrixWorld );
+    const { x: x1, y: y1 } = vector.setFromMatrixPosition( parent.matrixWorld );
+    const { x: x0, y: y0 } = vector.setFromMatrixPosition( grandparent.matrixWorld );
 
     const cross = ( x - x0 ) * ( y1 - y0 ) - ( y - y0 ) * ( x1 - x0 );
 
-    if ( cross < 0 ) { bone.direction = 'left';  }
-    if ( cross > 0 ) { bone.direction = 'right'; }
+    // Left.
+    if ( cross < 0 ) { bone.startAngle = -Math.PI / 3; }
+    // Right.
+    if ( cross > 0 ) { bone.startAngle =  Math.PI / 3; }
   });
-
-  const scale = new THREE.Vector3();
 
   function animate() {
     // Rotate camera instead of mesh to prevent problems with SkeletonHelper
@@ -109,17 +124,14 @@ function render3d() {
 
     const cos = Math.cos( time );
 
-    const angle  = 0.5 * ( cos - 1 ) * Math.PI / 2;
-    const length = 0.5 * ( cos + 1 ) * 2;
+    const t = 0.5 * ( cos + 1 );
+    // Length of vector ( 1, 1, 1 ).
+    const length = t * Math.sqrt( 3 );
 
     mesh.skeleton.bones.forEach( ( bone, index ) => {
-      scale.setFromMatrixScale( bone.parent.matrixWorld );
-      bone.scale.setLength( length / scale.length() );
-
-      // Set angle if not base.
+      bone.scale.setLength( length );
       if ( index > 1 ) {
-        if ( bone.direction === 'left'  ) { bone.rotation.z =  angle; }
-        if ( bone.direction === 'right' ) { bone.rotation.z = -angle; }
+        bone.rotation.z = bone.startAngle * ( 1 - t );
       }
 
       bone.updateMatrixWorld();
