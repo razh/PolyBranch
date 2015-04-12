@@ -27,11 +27,11 @@
     "tone": "^0.4.2"
   },
   "devDependencies": {
-    "babelify": "^6.0.1",
-    "browser-sync": "^2.5.2",
-    "browserify": "^9.0.6",
+    "babelify": "^6.0.2",
+    "browser-sync": "^2.5.3",
+    "browserify": "^9.0.8",
     "del": "^1.1.1",
-    "glslify": "^2.0.1",
+    "glslify": "^2.1.1",
     "gulp": "^3.8.11",
     "gulp-util": "^3.0.4",
     "run-sequence": "^1.0.2",
