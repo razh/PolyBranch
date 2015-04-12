@@ -12,7 +12,7 @@ export default class Player {
     this.velocity = new THREE.Vector3();
     this.speed = 6;
 
-    this.radius = 40;
+    this.radius = 24;
     this.hue = 0;
   }
 
@@ -23,7 +23,7 @@ export default class Player {
     this.position.y = canvas.width / 2;
     this.velocity.set( 0, 0, 0 );
 
-    this.radius = 40;
+    this.radius = 24;
     this.speed = 6;
   }
 }

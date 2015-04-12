@@ -336,8 +336,8 @@ export default class Game extends EventEmitter {
 
     for ( let i = 0; i < 13; i++ ) {
       this.layers.push(
-        this,
         new Layer(
+          this,
           16,
           canvas.width, canvas.height,
           i < 4 ? 'active' : 'inactive'
