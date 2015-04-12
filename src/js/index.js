@@ -1,4 +1,7 @@
 import Game from './game';
+import createIcon from './icon';
+
+createIcon();
 
 const LONG_DURATION = 1000;
 
