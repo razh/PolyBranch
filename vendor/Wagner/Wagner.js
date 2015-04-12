@@ -1,11 +1,10 @@
-(function() {
+import THREE from 'three';
 
-'use strict';
+const glslify = require( 'glslify' );
 
-var WAGNER = WAGNER || {};
+const WAGNER = {};
+export default WAGNER;
 
-WAGNER.vertexShadersPath = './vertex-shaders';
-WAGNER.fragmentShadersPath = './fragment-shaders';
 WAGNER.assetsPath = './assets';
 
 WAGNER.log = function() {
@@ -40,7 +39,7 @@ WAGNER.Composer = function( renderer, settings ) {
 		type: this.settings.type !== undefined ? this.settings.type : THREE.UnsignedByteType,
 		stencilBuffer: this.settings.stencilBuffer !== undefined ? this.settings.stencilBuffer : true
 	});
-	
+
 	this.back = this.front.clone();
 
 	this.startTime = Date.now();
@@ -58,7 +57,7 @@ WAGNER.Composer.prototype.linkPass = function( id, pass ) {
 			return this.message;
 		};
 	}
-	
+
 	if( this.passes[ id ] ) {
 		throw new WagnerLoadPassException( id, pass );
 	}
@@ -130,7 +129,7 @@ WAGNER.Composer.prototype.pass = function( pass ) {
 		}
 
 		if( !pass.isSim ) this.quad.material.uniforms.tInput.value = this.read;
-		
+
 		this.quad.material.uniforms.resolution.value.set( this.width, this.height );
 		this.quad.material.uniforms.time.value = 0.001 * ( Date.now() - this.startTime );
 		this.renderer.render( this.scene, this.camera, this.write, false );
@@ -194,56 +193,22 @@ WAGNER.Composer.prototype.setSize = function( w, h ) {
 
 WAGNER.Composer.prototype.defaultMaterial = new THREE.MeshBasicMaterial();
 
-WAGNER.loadShader = function( file, callback ) {
-
-	var oReq = new XMLHttpRequest();
-	oReq.onload = function() {
-		var content = oReq.responseText;
-		callback( content );
-	}.bind( this );
-	oReq.onerror = function() {
-
-		function WagnerLoadShaderException( f ) {
-			this.message = 'Shader "' + f + '" couldn\'t be loaded.';
-			this.name = "WagnerLoadShaderException";
-			this.toString = function() {
-				return this.message;
-			};
-		}
-		throw new WagnerLoadShaderException( file );
-	};
-	oReq.onabort = function() {
-
-		function WagnerLoadShaderException( f ) {
-			this.message = 'Shader "' + f + '" load was aborted.';
-			this.name = "WagnerLoadShaderException";
-			this.toString = function() {
-				return this.message;
-			};
-		}
-		throw new WagnerLoadShaderException( file );
-	};
-	oReq.open( 'get', file, true );
-	oReq.send();
-
-};
-
 WAGNER.processShader = function( vertexShaderCode, fragmentShaderCode ) {
 
 	WAGNER.log( 'Processing Shader | Performing uniform Reflection...' );
 
-	var regExp = /uniform\s+([^\s]+)\s+([^\s]+)\s*;/gi; 
+	var regExp = /uniform\s+([^\s]+)\s+([^\s]+)\s*;/gi;
 	var regExp2 = /uniform\s+([^\s]+)\s+([^\s]+)\s*\[\s*(\w+)\s*\]*\s*;/gi;
 
 	var typesMap = {
-		
+
 		sampler2D: { type: 't', value: function() { return new THREE.Texture(); } },
 		samplerCube: { type: 't', value: function() {} },
 
 		bool:  { type: 'b', value: function() { return 0; } },
 		int:   { type: 'i', value: function() { return 0; } },
 		float: { type: 'f', value: function() { return 0; } },
-		
+
 		vec2: { type: 'v2', value: function() { return new THREE.Vector2(); } },
 		vec3: { type: 'v3', value: function() { return new THREE.Vector3(); } },
 		vec4: { type: 'v4', value: function() { return new THREE.Vector4(); } },
@@ -275,7 +240,7 @@ WAGNER.processShader = function( vertexShaderCode, fragmentShaderCode ) {
 	};
 
   var uniformType, uniformName, arraySize;
-  
+
 	while( ( matches = regExp.exec( fragmentShaderCode ) ) !== null) {
 		if( matches.index === regExp.lastIndex) {
 			regExp.lastIndex++;
@@ -331,15 +296,11 @@ WAGNER.Pass = function() {
 
 };
 
-WAGNER.Pass.prototype.loadShader = function( id, c ) {
+WAGNER.Pass.prototype.loadShader = function( fs, c ) {
 
-	var self = this;
 	var vs = 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }';
-	WAGNER.loadShader( WAGNER.fragmentShadersPath + '/' + id, function( fs ) {
-		self.shader = WAGNER.processShader( vs, fs );
-		//self.mapUniforms( self.shader.uniforms );
-		if( c ) c.apply( self );
-	} );
+	this.shader = WAGNER.processShader( vs, fs );
+	if( c ) c.apply( this );
 
 };
 
@@ -350,10 +311,10 @@ WAGNER.Pass.prototype.mapUniforms = function( uniforms ) {
 	for( var j in uniforms ) {
 		if( !uniforms[ j ].default ) {
 			(function( id ) {
-				Object.defineProperty( params, id, { 
-					get : function(){ return uniforms[ id ].value; }, 
+				Object.defineProperty( params, id, {
+					get : function(){ return uniforms[ id ].value; },
 					set : function( v ){ uniforms[ id ].value = v; },
-					configurable : false 
+					configurable : false
 				} );
 			})( j );
 		}
@@ -369,7 +330,7 @@ WAGNER.Pass.prototype.run = function( c ) {
 };
 
 WAGNER.Pass.prototype.isLoaded = function() {
-	
+
 	if( this.loaded === null ) {
 		if( this.shader instanceof THREE.ShaderMaterial ) {
 			this.loaded = true;
@@ -382,9 +343,9 @@ WAGNER.Pass.prototype.isLoaded = function() {
 
 WAGNER.Pass.prototype.getOfflineTexture = function( w, h, useRGBA ){
 
-	var rtTexture = new THREE.WebGLRenderTarget( w, h, { 
-		minFilter: THREE.LinearFilter, 
-		magFilter: THREE.LinearFilter, 
+	var rtTexture = new THREE.WebGLRenderTarget( w, h, {
+		minFilter: THREE.LinearFilter,
+		magFilter: THREE.LinearFilter,
 		format: useRGBA?THREE.RGBAFormat:THREE.RGBFormat
 	} );
 
@@ -396,27 +357,11 @@ WAGNER.CopyPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'CopyPass constructor' );
-	this.loadShader( 'copy-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/copy-fs.glsl' ) );
 
 };
 
 WAGNER.CopyPass.prototype = Object.create( WAGNER.Pass.prototype );
-
-WAGNER.GenericPass = function( fragmentShaderSource, c ) {
-
-	WAGNER.Pass.call( this );
-	var self = this;
-	WAGNER.loadShader( WAGNER.vertexShadersPath + '/orto-vs.glsl', function( vs ) {
-		WAGNER.loadShader( fragmentShaderSource, function( fs ) {
-			self.shader = WAGNER.processShader( vs, fs );
-			if( c ) c.apply( self );
-		} );
-	} );
-
-}
-
-WAGNER.GenericPass.prototype = Object.create( WAGNER.Pass.prototype );
-
 
 
 WAGNER.Stack = function ( shadersPool ) {
@@ -439,7 +384,7 @@ WAGNER.Stack.prototype.addPass = function ( shaderName, enabled, params, index )
 
     this.passItems.push( passItem );
     length = this.passItems.length;
-    
+
     this.updatePasses();
 
     if ( index ) {
@@ -586,7 +531,7 @@ WAGNER.ShadersPool.prototype.getShaderFromPool = function ( shaderName ) {
                 break;
 
             }
-    		
+
     	};
 
         if ( !pass ) {
@@ -630,12 +575,5 @@ WAGNER.ShadersPool.prototype.extendParams = function(target, source) {
     }
 
     return obj;
-    
-}
 
-
-
-
-
-window.WAGNER = WAGNER;
-})();
+};

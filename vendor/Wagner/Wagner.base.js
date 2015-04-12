@@ -1,8 +1,14 @@
+import THREE from 'three';
+import WAGNER from './Wagner';
+
+const glslify = require( 'glslify' );
+
+
 WAGNER.BlendPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'BlendPass constructor' );
-	this.loadShader( 'blend-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'blend-fs.glsl' ) );
 
 	this.params.mode = 1;
 	this.params.opacity = 1;
@@ -58,7 +64,7 @@ WAGNER.InvertPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'InvertPass constructor' );
-	this.loadShader( 'invert-fs.glsl' );
+	this.loadShader( glslify( WAGNER.__dirname + '/fragment-shaders/' + 'invert-fs.glsl' ) );
 
 };
 
@@ -68,7 +74,7 @@ WAGNER.SymetricPass = function() {
 
     WAGNER.Pass.call( this );
     WAGNER.log( 'SymetricPass constructor' );
-    this.loadShader( 'symetric-fs.glsl' );
+    this.loadShader( glslify( WAGNER.__dirname + '/fragment-shaders/' + 'symetric-fs.glsl' ) );
 
     this.params.xReverse = false;
     this.params.yReverse = false;
@@ -100,7 +106,7 @@ WAGNER.SepiaPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'SepiaPass constructor' );
-	this.loadShader( 'sepia-fs.glsl' );
+	this.loadShader( glslify( WAGNER.__dirname + '/fragment-shaders/' + 'sepia-fs.glsl' ) );
 
 	this.params.amount = 1;
 
@@ -119,7 +125,7 @@ WAGNER.BrightnessContrastPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'BrightnessContrastPass constructor' );
-	this.loadShader( 'brightness-contrast-fs.glsl' );
+	this.loadShader( glslify( WAGNER.__dirname + '/fragment-shaders/' + 'brightness-contrast-fs.glsl' ) );
 
 	this.params.brightness = 1;
 	this.params.contrast = 1;
@@ -139,10 +145,10 @@ WAGNER.BrightnessContrastPass.prototype.run = function( c ) {
 
 WAGNER.Pass.prototype.bindUniform = function( p, s, v, c ) {
 
-	Object.defineProperty( p, v, { 
-		get : function(){ return s.uniforms[ id ].value; }, 
+	Object.defineProperty( p, v, {
+		get : function(){ return s.uniforms[ id ].value; },
 		set : c,
-		configurable : false 
+		configurable : false
 	} );
 
 };
@@ -151,7 +157,7 @@ WAGNER.NoisePass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'Noise Pass constructor' );
-	this.loadShader( 'noise-fs.glsl' );
+	this.loadShader( glslify( WAGNER.__dirname + '/fragment-shaders/' + 'noise-fs.glsl' ) );
 
 	this.params.amount = 0.1;
 	this.params.speed = 0;
@@ -172,7 +178,7 @@ WAGNER.VignettePass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'Vignette Pass constructor' );
-	this.loadShader( 'vignette-fs.glsl' );
+	this.loadShader( glslify( WAGNER.__dirname + '/fragment-shaders/' + 'vignette-fs.glsl' ) );
 
 	this.params.amount = 1;
 	this.params.falloff = 0.1;
@@ -193,7 +199,7 @@ WAGNER.Vignette2Pass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'Vignette Pass constructor' );
-	this.loadShader( 'vignette2-fs.glsl' );
+	this.loadShader( glslify( WAGNER.__dirname + '/fragment-shaders/' + 'vignette2-fs.glsl' ) );
 
 	this.params.boost = 2;
 	this.params.reduction = 2;
@@ -214,7 +220,7 @@ WAGNER.DenoisePass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'Denoise Pass constructor' );
-	this.loadShader( 'denoise-fs.glsl' );
+	this.loadShader( glslify( WAGNER.__dirname + '/fragment-shaders/' + 'denoise-fs.glsl' ) );
 
 	this.params.exponent = 5;
 	this.params.strength = 10;
@@ -235,7 +241,7 @@ WAGNER.BoxBlurPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'BoxBlurPass Pass constructor' );
-	this.loadShader( 'box-blur2-fs.glsl' );
+	this.loadShader( glslify( WAGNER.__dirname + '/fragment-shaders/' + 'box-blur2-fs.glsl' ) );
 	this.params.delta = new THREE.Vector2( 0, 0 );
 	this.params.taps = 1;
 
@@ -290,7 +296,7 @@ WAGNER.ZoomBlurPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'ZoomBlurPass Pass constructor' );
-	this.loadShader( 'zoom-blur-fs.glsl' );
+	this.loadShader( glslify( WAGNER.__dirname + '/fragment-shaders/' + 'zoom-blur-fs.glsl' ) );
 
 	this.params.center = new THREE.Vector2( 0.5, 0.5 );
 	this.params.strength = 2;
@@ -336,7 +342,7 @@ WAGNER.MultiPassBloomPass.prototype = Object.create( WAGNER.Pass.prototype );
 
 WAGNER.MultiPassBloomPass.prototype.isLoaded = function() {
 
-	if( this.blurPass.isLoaded() && 
+	if( this.blurPass.isLoaded() &&
 		this.blendPass.isLoaded() &&
 		this.zoomBlur.isLoaded() ) {
 		this.loaded = true;
@@ -372,7 +378,7 @@ WAGNER.MultiPassBloomPass.prototype.run = function( c ) {
 
 	this.blurPass.params.amount = this.params.blurAmount;
 	this.composer.pass( this.blurPass );
-	
+
 	if( this.params.applyZoomBlur ) {
 		this.zoomBlur.params.center.set( .5 * this.composer.width, .5 * this.composer.height );
 		this.zoomBlur.params.strength = this.params.zoomBlurStrength;
@@ -388,14 +394,14 @@ WAGNER.MultiPassBloomPass.prototype.run = function( c ) {
 	this.blendPass.params.mode = this.params.blendMode;
 	this.blendPass.params.tInput2 = this.composer.output;
 	c.pass( this.blendPass );
-	
+
 };
 
 WAGNER.CGAPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'CGA Pass constructor' );
-	this.loadShader( 'cga-fs.glsl', function() {
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'cga-fs.glsl' ), function() {
 		this.shader.uniforms.pixelDensity.value = window.devicePixelRatio;
 	} );
 
@@ -407,7 +413,7 @@ WAGNER.SobelEdgeDetectionPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'SobelEdgeDetectionPass Pass constructor' );
-	this.loadShader( 'sobel-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'sobel-fs.glsl' ) );
 
 };
 
@@ -417,7 +423,7 @@ WAGNER.FreiChenEdgeDetectionPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'FreiChenEdgeDetectionPass Pass constructor' );
-	this.loadShader( 'frei-chen-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'frei-chen-fs.glsl' ) );
 
 };
 
@@ -462,7 +468,7 @@ WAGNER.GuidedBoxBlurPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'GuidedBoxBlurPass Pass constructor' );
-	this.loadShader( 'guided-box-blur2-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'guided-box-blur2-fs.glsl' ) );
 
 	this.params.tBias = null;
 	this.params.delta = new THREE.Vector2( 1., 0 );
@@ -536,7 +542,7 @@ WAGNER.PixelatePass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'PixelatePass Pass constructor' );
-	this.loadShader( 'pixelate-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'pixelate-fs.glsl' ) );
 
 	this.params.amount = 320;
 
@@ -555,7 +561,7 @@ WAGNER.RGBSplitPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'RGBSplitPass Pass constructor' );
-	this.loadShader( 'rgb-split-fs.glsl', function() {
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'rgb-split-fs.glsl' ), function() {
 	} );
 
 	this.params.delta = new THREE.Vector2();
@@ -585,7 +591,7 @@ WAGNER.ChromaticAberrationPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'ChromaticAberrationPass Pass constructor' );
-	this.loadShader( 'chromatic-aberration-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'chromatic-aberration-fs.glsl' ) );
 
 };
 
@@ -595,7 +601,7 @@ WAGNER.BarrelBlurPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'BarrelBlurPass Pass constructor' );
-	this.loadShader( 'barrel-blur-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'barrel-blur-fs.glsl' ) );
 
 };
 
@@ -605,7 +611,7 @@ WAGNER.OldVideoPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'OldVideoPass Pass constructor' );
-	this.loadShader( 'old-video-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'old-video-fs.glsl' ) );
 
 };
 
@@ -615,7 +621,7 @@ WAGNER.DotScreenPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'DotScreenPass Pass constructor' );
-	this.loadShader( 'dot-screen-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'dot-screen-fs.glsl' ) );
 
 };
 
@@ -625,7 +631,7 @@ WAGNER.PoissonDiscBlurPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'PoissonDiscBlurPass Pass constructor' );
-	this.loadShader( 'poisson-disc-blur-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'poisson-disc-blur-fs.glsl' ) );
 
 };
 
@@ -635,7 +641,7 @@ WAGNER.CircularBlurPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'CircularBlurPass Pass constructor' );
-	this.loadShader( 'circular-blur-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'circular-blur-fs.glsl' ) );
 
 };
 
@@ -645,7 +651,7 @@ WAGNER.ToonPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'ToonPass Pass constructor' );
-	this.loadShader( 'toon-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'toon-fs.glsl' ) );
 
 };
 
@@ -655,7 +661,7 @@ WAGNER.FXAAPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'FXAA Pass constructor' );
-	this.loadShader( 'fxaa-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'fxaa-fs.glsl' ) );
 
 };
 
@@ -665,7 +671,7 @@ WAGNER.HighPassPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'HighPass Pass constructor' );
-	this.loadShader( 'high-pass-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'high-pass-fs.glsl' ) );
 
 };
 
@@ -675,7 +681,7 @@ WAGNER.GrayscalePass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'GrayscalePass Pass constructor' );
-	this.loadShader( 'grayscale-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'grayscale-fs.glsl' ) );
 
 };
 
@@ -685,7 +691,7 @@ WAGNER.ASCIIPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'ASCIIPass Pass constructor' );
-	this.loadShader( 'ascii-fs.glsl', function() {
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'ascii-fs.glsl' ), function() {
 		this.shader.uniforms.tAscii.value = THREE.ImageUtils.loadTexture( WAGNER.assetsPath + '/ascii/8x16_ascii_font_sorted.gif' );
 	} );
 
@@ -697,8 +703,8 @@ WAGNER.LEDPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'LEDPass Pass constructor' );
-	this.loadShader( 'led-fs.glsl', function() {
-		
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'led-fs.glsl' ), function() {
+
 		//this.shader.uniforms.noiseTexture.value = 1;
 	} );
 
@@ -731,7 +737,7 @@ WAGNER.HalftonePass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'HalftonePass Pass constructor' );
-	this.loadShader( 'halftone-fs.glsl', function() {
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'halftone-fs.glsl' ), function() {
 		this.shader.uniforms.pixelSize.value = 6;
 	} );
 
@@ -743,7 +749,7 @@ WAGNER.Halftone2Pass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'Halftone2Pass Pass constructor' );
-	this.loadShader( 'halftone2-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'halftone2-fs.glsl' ) );
 
 	this.params.amount = 128;
 	this.params.smoothness = .25;
@@ -761,23 +767,11 @@ WAGNER.Halftone2Pass.prototype.run = function( c ) {
 
 }
 
-WAGNER.HalftoneCMYKPass = function() {
-
-	WAGNER.Pass.call( this );
-	WAGNER.log( 'HalftoneCMYKPass Pass constructor' );
-	this.loadShader( 'halftone-cmyk-fs.glsl', function() {
-
-	} );
-
-};
-
-WAGNER.HalftoneCMYKPass.prototype = Object.create( WAGNER.Pass.prototype );
-
 WAGNER.CrossFadePass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'CrossFadePass Pass constructor' );
-	this.loadShader( 'crossfade-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'crossfade-fs.glsl' ) );
 
 	this.params.tInput2 = null;
 	this.params.tFadeMap = null;
@@ -801,8 +795,8 @@ WAGNER.SSAOPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'SSAOPass Pass constructor' );
-	this.loadShader( 'ssao-fs.glsl', function( fs ) {
-		
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'ssao-fs.glsl' ), function( fs ) {
+
 		/*this.shader.uniforms.pSphere.value = [
 			new THREE.Vector3(-0.010735935, 0.01647018, 0.0062425877),
 			new THREE.Vector3(-0.06533369, 0.3647007, -0.13746321),
@@ -815,7 +809,7 @@ WAGNER.SSAOPass = function() {
 			new THREE.Vector3(0.8765323, 0.011236004, 0.28265962),
 			new THREE.Vector3(0.29264435, -0.40794238, 0.15964167)
 		];*/
-		
+
 	} );
 
 	this.params.texture = null;
@@ -852,7 +846,7 @@ WAGNER.SSAOPass.prototype.run = function( c ) {
 
 	if( this.params.onlyOcclusion ) {
 		c.setSource( this.composer.output );
-	} else {		
+	} else {
 		this.blendPass.params.mode = WAGNER.BlendMode.Multiply;
 		this.blendPass.params.tInput2 = this.composer.output;
 
@@ -865,7 +859,7 @@ WAGNER.SimpleSSAOPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'SimpleSSAOPass Pass constructor' );
-	this.loadShader( 'ssao-simple-fs.glsl', function( fs ) {
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'ssao-simple-fs.glsl' ), function( fs ) {
 	} );
 
 	this.params.texture = null;
@@ -894,8 +888,8 @@ WAGNER.DirectionalBlurPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'Directional Blur Pass constructor' );
-	this.loadShader( 'guided-directional-blur-fs.glsl', function( fs ) {
-		
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'guided-directional-blur-fs.glsl' ), function( fs ) {
+
 	} );
 
 	this.params.tBias = null;
@@ -918,8 +912,8 @@ WAGNER.BleachPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'Bleach Pass constructor' );
-	this.loadShader( 'bleach-fs.glsl', function( fs ) {
-		
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'bleach-fs.glsl' ), function( fs ) {
+
 	} );
 
 	this.params.amount = 1;
@@ -940,7 +934,7 @@ WAGNER.DOFPass = function() {
 
 	WAGNER.Pass.call( this );
 	WAGNER.log( 'DOFPass Pass constructor' );
-	this.loadShader( 'dof-fs.glsl' );
+	this.loadShader( glslify( __dirname + '/fragment-shaders/' + 'dof-fs.glsl' ) );
 
 	this.params.focalDistance = 0;
 	this.params.aperture = .005;
