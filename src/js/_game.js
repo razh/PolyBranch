@@ -1,3 +1,4 @@
+import remove from 'lodash/array/remove';
 import times from 'lodash/utility/times';
 import THREE from 'three';
 import CANNON from 'cannon';
@@ -25,7 +26,7 @@ const speeds = [
   0.007,
   0.0075,
   0.008
-];
+].map( speed => speed *= 4e3 );
 
 const scores = [
   0,
@@ -84,12 +85,17 @@ function convertFaces( threeFaces ) {
 }
 
 
-function enableBody( body ) {
+function enableTree( tree ) {
+  tree.mesh.visible = true;
+  tree.passed = false;
+  const { body } = tree;
   body.collisionFilterGroup = 1;
   body.collisionFilterMask = 1;
 }
 
-function disableBody( body ) {
+function disableTree( tree ) {
+  tree.mesh.visible = false;
+  const { body } = tree;
   body.collisionFilterGroup = 0;
   body.collisionFilterMask = 0;
 }
@@ -124,9 +130,13 @@ export default class Game extends EventEmitter {
 
     const cylinderMesh2 = new THREE.Mesh( cylinder.geometry, material );
     scene.add( cylinderMesh2 );
-    cylinderMesh2.position.z -= cylinder.length;
     cylinderMesh2.rotation.x = -Math.PI / 2;
     cylinderMesh2.rotation.y = Math.PI;
+
+    const cylinderMesh3 = new THREE.Mesh( cylinder.geometry, material );
+    scene.add( cylinderMesh3 );
+    cylinderMesh3.rotation.x = -Math.PI / 2;
+    cylinderMesh3.rotation.y = Math.PI;
 
     // Lighting.
     this.light = new THREE.PointLight( '#acf' );
@@ -137,7 +147,7 @@ export default class Game extends EventEmitter {
     this.camera = camera;
 
     this.cylinder = cylinder;
-    this.cylinderMeshes = [ cylinderMesh, cylinderMesh2 ];
+    this.cylinderMeshes = [ cylinderMesh, cylinderMesh2, cylinderMesh3 ];
 
     // Setup physics.
     this.clock = new THREE.Clock( true );
@@ -157,19 +167,12 @@ export default class Game extends EventEmitter {
 
     const scale = 0.6;
     const scaleMatrix = new THREE.Matrix4().makeScale( scale, scale, scale );
-    times( 18, () => {
+    times( 24, () => {
       const tree = new Tree( treeMaterial );
       const { mesh } = tree;
       mesh.geometry.applyMatrix( scaleMatrix );
       mesh.geometry.computeFaceNormals();
       mesh.geometry.computeVertexNormals();
-
-      const angle = Math.random() * 2 * Math.PI;
-      mesh.rotation.z = angle + Math.PI / 2;
-      mesh.position.x = 0.75 * this.cylinder.radius * Math.cos( angle );
-      mesh.position.y = 0.75 * this.cylinder.radius * Math.sin( angle );
-      mesh.position.z = -2 * Math.random() * this.cylinder.length;
-
       scene.add( mesh );
 
       const { geometry } = tree;
@@ -180,13 +183,14 @@ export default class Game extends EventEmitter {
           convertFaces( geometry.faces )
         )
       });
-      body.position.copy( mesh.position );
-      body.quaternion.copy( mesh.quaternion );
       world.addBody( body );
+      tree.body = body;
+      disableTree( tree );
 
       this.trees.push( tree );
     });
-
+    this.activeTrees = [];
+    this.inactiveTrees = this.trees.slice();
 
     this.createPlayer();
     this.player.add( this.light );
@@ -235,30 +239,75 @@ export default class Game extends EventEmitter {
     this.cylinder.update();
     this.cylinderMeshes.map( mesh => {
       const { length } = this.cylinder;
-      if ( this.player.position.z < mesh.position.z - length / 2 ) {
-        mesh.position.z -= 2 * length;
+      if ( this.player.position.z < mesh.position.z - length * 0.6 ) {
+        mesh.position.z -= this.cylinderMeshes.length * length;
       }
     });
+
+    // Increase score.
+    this.activeTrees.map( tree => {
+      if ( !tree.passed && this.player.position.z < tree.mesh.position.z ) {
+        this.score += 100;
+        tree.passed = true;
+        this.emit( 'score', this.score );
+      }
+    });
+
+    // Remove trees.
+    this.activeTrees.map( tree => {
+      if ( this.camera.position.z < tree.mesh.position.z ) {
+        disableTree( tree );
+        remove( this.activeTrees, tree );
+        this.inactiveTrees.push( tree );
+      }
+    });
+
+    if ( !this.activeTrees.length ) {
+      this.emit( 'level' );
+      this.checkLevel();
+      this.changeLevel();
+    }
 
     const delta = this.clock.getDelta();
     this.world.step( this.dt, delta );
 
-    const dv = 20 * delta;
-    if ( this.keys[0] ) { this.player.position.y += dv; }
-    if ( this.keys[1] ) { this.player.position.y -= dv; }
-    if ( this.keys[2] ) { this.player.position.x -= dv; }
-    if ( this.keys[3] ) { this.player.position.x += dv; }
-    if ( this.keys[4] ) { this.player.position.z -= dv; }
-    if ( this.keys[5] ) { this.player.position.z += dv; }
+    const dv = 120 * delta;
+    let vx, vy;
+    if ( this.keys[0] ) { vy =  dv; }
+    if ( this.keys[1] ) { vy = -dv; }
+    if ( this.keys[2] ) { vx = -dv; }
+    if ( this.keys[3] ) { vx =  dv; }
+    if ( this.keys[4] ) { this.player.position.z -= this.speed * delta; }
+    if ( this.keys[5] ) { this.player.position.z += this.speed * delta; }
+
+    const dampening = 4;
+
+    if ( vx ) {
+      this.playerVelocity.x = vx;
+    } else {
+      this.playerVelocity.x *= 1 - dampening * delta;
+    }
+
+    if ( vy ) {
+      this.playerVelocity.y = vy;
+    } else {
+      this.playerVelocity.y *= 1 - dampening * delta;
+    }
+
+    this.player.position.x += this.playerVelocity.x * delta;
+    this.player.position.y += this.playerVelocity.y * delta;
 
     const radius = vec2.copy( this.player.position ).length();
     if ( radius > 0.6 * this.cylinder.radius - this.playerRadius ) {
       vec2.setLength( 0.6 * this.cylinder.radius - this.playerRadius );
       this.player.position.x = vec2.x;
       this.player.position.y = vec2.y;
+      this.playerVelocity.set( 0, 0 );
     }
 
-    this.player.rotation.x += this.speed * delta * 1e3;
+    const rot = 5;
+    this.player.rotation.y +=  rot * this.playerVelocity.x * delta;
+    this.player.rotation.x += -rot * this.playerVelocity.y * delta;
 
     this.playerBody.position.copy( this.player.position );
     this.camera.position.z = this.player.position.z + 4;
@@ -269,9 +318,10 @@ export default class Game extends EventEmitter {
     // Length of vector ( 1, 1, 1 ).
     const sqrt3 = Math.sqrt( 3 );
 
-    this.trees.forEach( tree => {
+    this.activeTrees.forEach( tree => {
       const distance = tree.mesh.position.distanceTo( this.player.position );
-      const t = THREE.Math.clamp( ( 64 - distance ) / 64, 0.01, 1 );
+      const falloff = this.cylinder.length;
+      const t = THREE.Math.clamp( Math.abs( falloff - distance ) / falloff, 0, 1 );
       const length = t * sqrt3;
       tree.mesh.skeleton.bones.forEach( ( bone, index ) => {
         bone.scale.setLength( length );
@@ -289,18 +339,18 @@ export default class Game extends EventEmitter {
     const radius = 0.3;
     const geometry = new THREE.IcosahedronGeometry( radius, 1 );
     const material = new THREE.MeshBasicMaterial({
-      color: '#222'
+      color: '#111'
     });
     const mesh = new THREE.Mesh( geometry, material );
-    this.wireframe = new THREE.WireframeHelper( mesh, 0xdddddd );
-    this.wireframe.material.linewidth = 2;
+    this.wireframe = new THREE.WireframeHelper( mesh, 0xffffff );
+    this.wireframe.material.linewidth = 3;
 
     this.player = mesh;
     this.playerRadius = radius;
+    this.playerVelocity = new THREE.Vector2();
     this.playerBody = new CANNON.Body({
       mass: 1,
-      // Bump up radius to increase difficulty.
-      shape: new CANNON.Sphere( 1.25 * radius )
+      shape: new CANNON.Sphere( radius )
     });
 
     this.playerBody.addEventListener( 'collide', () => this.end() );
@@ -309,9 +359,8 @@ export default class Game extends EventEmitter {
   checkLevel() {
     for ( let i = scores.length - 1; i >= 0; i-- ) {
       if ( this.score > scores[i] && this.level < ( i + 1 ) ) {
-        this.level       = i + 1;
-        this.branchCount = branches[i];
-        this.levelUp     = 0;
+        this.level = i + 1;
+        this.changeLevel();
         break;
       }
     }
@@ -331,11 +380,44 @@ export default class Game extends EventEmitter {
 
   reset() {
     this.player.position.set( 0, 0, 0 );
+    this.playerVelocity.set( 0, 0, 0 );
     this.playerBody.position.set( 0, 0, 0 );
     this.speed = speeds[0];
     this.isGameOver = false;
     this.score = 0;
     this.level = 1;
+
+    this.cylinderMeshes.map( mesh => mesh.position.z = 0 );
+    this.cylinderMeshes[1].position.z = -this.cylinder.length;
+    this.cylinderMeshes[2].position.z = -2 * this.cylinder.length;
+
+    this.changeLevel();
+  }
+
+  changeLevel() {
+    this.speed = speeds[ this.level - 1 ];
+    const branchCount = branches[ this.level - 1 ];
+    this.trees.map( disableTree );
+    this.activeTrees = [];
+    this.inactiveTrees = this.trees.slice();
+
+    let i = branchCount;
+    while ( i-- && this.inactiveTrees.length ) {
+      const tree = this.inactiveTrees.pop();
+      enableTree( tree );
+      this.activeTrees.push( tree );
+
+      const { mesh, body } = tree;
+      const angle = Math.random() * 2 * Math.PI;
+      mesh.rotation.z = angle + Math.PI / 2;
+      mesh.position.x = 0.75 * this.cylinder.radius * Math.cos( angle );
+      mesh.position.y = 0.75 * this.cylinder.radius * Math.sin( angle );
+      mesh.position.z = this.player.position.z - this.cylinder.length -
+        ( i * this.cylinder.length / branchCount );
+
+      body.position.copy( mesh.position );
+      body.quaternion.copy( mesh.quaternion );
+    }
   }
 
   /*
