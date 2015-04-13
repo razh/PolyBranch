@@ -92,5 +92,5 @@ export default function generate( count = 8 ) {
     tree.insert( Math.random() + 1e-8 );
   }
 
-  return tree.toObject3D( 1.5, 2 );
+  return tree.toObject3D( 1.25, 2 );
 }

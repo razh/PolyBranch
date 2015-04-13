@@ -1,9 +1,9 @@
 import $ from 'jquery';
 
 window.jQuery = window.$ = $;
-require('velocity-animate');
+require( 'velocity-animate' );
 
-import Game from './game';
+import Game from './_game';
 import createIcon from './icon';
 
 createIcon();
@@ -34,7 +34,7 @@ const $score = $( '#hud #score' );
 const $level = $( '#hud #level span' );
 
 // Initialize.
-const game = new Game( $( 'canvas' )[0] );
+const game = new Game( $( '.container' )[0] );
 $loading.fadeOut( DURATION, () => $loading.hide() );
 
 $start.on( 'click', () => {

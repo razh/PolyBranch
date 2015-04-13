@@ -2,7 +2,7 @@
 @require './../../node_modules/normalize.css/normalize.css'
 
 body
-  background-color #eee
+  background-color #000
   color #333
 
   font-family "Helvetica Neue", Arial, Helvetica, sans-serif
@@ -32,22 +32,32 @@ h3
 h4
 h5
 h6
-  color #222
+  color #fff
   opacity 0.75
   font-weight 100
-  text-shadow 0 1px 0 #fff
+  text-shadow 0 1px 0 #222
   text-transform uppercase
 
-.button
+button
   appearance none
-  color #333
-  font-size 50px
+  border 0
+  outline 0
+
+  background-color transparent
+  color #fff
+
+  font-size 24px
+  font-weight 300
   line-height 1em
-  text-decoration none
+
+  border-bottom 1px solid @color
+
+  transition transform 200ms
+  transform scale(0.75)
+  transform-origin center bottom
 
   &:hover
-    color #633d3d
-    text-decoration none
+    transform none
 
 #game-wrapper
   position relative
@@ -91,7 +101,7 @@ h6
     margin 0 auto
     width 400px
     height 550px
-    background rgba( #eee, 0.7 )
+    background rgba( #222, 0.7 )
     opacity 0
 
   #score
@@ -141,34 +151,20 @@ h6
   left 0
   bottom 0
   right 0
+  z-index 1
 
 #flash
   display none
   background #fff
 
 canvas
+  position relative
   display block
   outline 0
 
-#page
-  display none
-  color #eee
-
-  h1
-    color #eee
-    font-size 60px
-    line-height 1em
-    text-shadow none
-
-  p
-    font-size 16px
-    line-height 22px
-
 #content
-  margin 48px auto 0 auto
-
-  width 800px
-  min-width 300px
-  overflow auto
-
-  border 1px solid #888
+  position absolute
+  top 0
+  right 0
+  bottom 0
+  left 0

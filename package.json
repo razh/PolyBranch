@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/razh/PolyBranch",
   "dependencies": {
+    "cannon": "^0.6.2",
     "dat-gui": "^0.5.0",
     "glsl-noise": "0.0.0",
     "jquery": "^2.1.3",
