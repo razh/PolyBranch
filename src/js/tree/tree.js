@@ -29,6 +29,7 @@ export default class Tree {
 
     geometry.computeFaceNormals();
     geometry.computeVertexNormals();
+    geometry.computeBoundingSphere();
 
     const material = new THREE.MeshPhongMaterial({
       skinning: true,
@@ -77,6 +78,27 @@ export default class Tree {
     this.geometry = geometry;
     this.material = material;
     this.mesh = mesh;
+    this.sphere = geometry.boundingSphere.clone();
+  }
+
+  collides( sphere ) {
+    // Check bounding sohere.
+    const { matrixWorld } = this.mesh;
+    this.sphere.applyMatrix4( matrixWorld );
+    if ( !this.sphere.intersectsSphere( sphere ) ) {
+      return false;
+    }
+
+    // Check vertices.
+    const { vertices } = this.geometry;
+    for ( let i = 0, il = vertices.length; i < il; i++ ) {
+      vector.copy( vertices[i] ).applyMatrix4( matrixWorld );
+      if ( sphere.containsPoint( vector ) ) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   update() {}

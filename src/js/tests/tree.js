@@ -6,6 +6,14 @@ import renderer from './renderer';
 
 import OrbitControls from './../../../vendor/controls/OrbitControls';
 
+function createSphereMesh( radius ) {
+  const geometry = new THREE.SphereGeometry( radius, 32, 32 );
+  const material = new THREE.MeshBasicMaterial({
+    color: '#333'
+  });
+  return new THREE.Mesh( geometry, material );
+}
+
 function render3d() {
   const render = renderer();
   const scene = new THREE.Scene();
@@ -30,7 +38,13 @@ function render3d() {
   skeletonHelper.material.linewidth = 4;
   mesh.add( skeletonHelper );
 
-  const scale = new THREE.Vector3();
+  const boundingBoxHelper = new THREE.BoundingBoxHelper( mesh );
+  mesh.add( boundingBoxHelper );
+
+  const radius = 1;
+  const sphereMesh = createSphereMesh( radius );
+  const sphere = new THREE.Sphere( sphereMesh.position.clone(), radius );
+  scene.add( sphereMesh );
 
   function animate() {
     // Rotate camera instead of mesh to prevent problems with SkeletonHelper
@@ -38,13 +52,15 @@ function render3d() {
     const time = Date.now() * 1e-3;
 
     const cos = Math.cos( time );
+    const sin = Math.sin( time );
+
     const t = 0.5 * ( cos + 1 );
     // Length of vector ( 1, 1, 1 ).
     const length = t * Math.sqrt( 3 );
 
     mesh.skeleton.bones.forEach( ( bone, index ) => {
-      scale.setFromMatrixScale( bone.parent.matrixWorld );
-      bone.scale.setLength( length / scale.length() );
+      bone.scale.setLength( length );
+
       if ( index > 1 ) {
         bone.rotation.z = bone.startAngle * ( 1 - t );
       }
@@ -52,7 +68,16 @@ function render3d() {
       bone.updateMatrixWorld();
     });
 
+    // Collision.
+    sphereMesh.position.set( 4 * cos, 2, 4 * sin );
+    sphereMesh.material.color.set( '#fff' );
+    sphere.center.copy( sphereMesh.position );
+    if ( tree.collides( sphere ) ) {
+      sphereMesh.material.color.set( '#fcc' );
+    }
+
     skeletonHelper.update();
+    boundingBoxHelper.update();
 
     render( scene, camera );
     requestAnimationFrame( animate );
