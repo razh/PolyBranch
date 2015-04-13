@@ -1,5 +1,8 @@
 import THREE from 'three';
 
+import WAGNER from './../../../vendor/Wagner/Wagner'
+import {} from './../../../vendor/Wagner/Wagner.base'
+
 import { PI2 } from './../math';
 
 import Tree from './../tree/tree';
@@ -9,6 +12,13 @@ function render3d() {
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
   document.body.appendChild( renderer.domElement );
+
+  const composer = new WAGNER.Composer( renderer, { useRGBA: false });
+  composer.setSize( renderer.domElement.width, renderer.domElement.height );
+
+  const fxaaPass = new WAGNER.FXAAPass();
+  const rgbSplitPass = new WAGNER.RGBSplitPass();
+  rgbSplitPass.params.delta.set( 32, 32 );
 
   const scene = new THREE.Scene();
 
@@ -58,7 +68,13 @@ function render3d() {
     });
 
     skeletonHelper.update();
-    renderer.render( scene, camera );
+
+    composer.reset();
+    composer.render( scene, camera );
+    composer.pass( fxaaPass );
+    composer.pass( rgbSplitPass );
+    composer.toScreen();
+
     requestAnimationFrame( animate );
   }
 
