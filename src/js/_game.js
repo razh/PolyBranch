@@ -13,6 +13,11 @@ import OrbitControls from './../../vendor/controls/OrbitControls';
 const vec2 = new THREE.Vector2();
 const vec3 = new THREE.Vector3();
 
+const debug = false;
+if ( debug ) {
+  console.log( 'DEBUG MODE' );
+}
+
 const speeds = [
   0.0025,
   0.003,
@@ -277,8 +282,12 @@ export default class Game extends EventEmitter {
     if ( this.keys[1] ) { vy = -dv; }
     if ( this.keys[2] ) { vx = -dv; }
     if ( this.keys[3] ) { vx =  dv; }
-    if ( this.keys[4] ) { this.player.position.z -= this.speed * delta; }
-    if ( this.keys[5] ) { this.player.position.z += this.speed * delta; }
+    if ( debug ) {
+      if ( this.keys[4] ) { this.player.position.z -= this.speed * delta; }
+      if ( this.keys[5] ) { this.player.position.z += this.speed * delta; }
+    } else {
+      this.player.position.z -= this.speed * delta;
+    }
 
     const dampening = 4;
 
