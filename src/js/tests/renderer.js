@@ -3,11 +3,11 @@ import THREE from 'three';
 import WAGNER from './../../../vendor/Wagner/Wagner'
 import {} from './../../../vendor/Wagner/Wagner.base'
 
-export default function create() {
+export default function create( container = document.body ) {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
-  document.body.appendChild( renderer.domElement );
+  container.appendChild( renderer.domElement );
 
   const composer = new WAGNER.Composer( renderer, { useRGBA: false });
   composer.setSize( renderer.domElement.width, renderer.domElement.height );
