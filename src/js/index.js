@@ -92,7 +92,7 @@ game.on( 'end', score => {
 
   $hud.hide();
   $flash.show()
-    .delay( LONG_DURATION )
+    .delay( DURATION )
     .velocity( { opacity: 0 }, DURATION, () => {
       $flash.hide()
         .css( 'opacity', 1 );

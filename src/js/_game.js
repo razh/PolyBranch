@@ -31,7 +31,7 @@ const speeds = [
   0.007,
   0.0075,
   0.008
-].map( speed => speed *= 4e3 );
+].map( speed => speed *= 6e3 );
 
 const scores = [
   0,
@@ -234,6 +234,7 @@ export default class Game extends EventEmitter {
     if ( !this.running ) {
       this.running = true;
       this.emit( 'start', true );
+      this.reset();
       this.tick();
     } else {
       this.running = false;
@@ -388,7 +389,7 @@ export default class Game extends EventEmitter {
   }
 
   reset() {
-    this.player.position.set( 0, 0, 0 );
+    this.player.position.set( 0, -1, 0 );
     this.playerVelocity.set( 0, 0, 0 );
     this.playerBody.position.set( 0, 0, 0 );
     this.speed = speeds[0];
@@ -437,20 +438,52 @@ export default class Game extends EventEmitter {
    */
   onKeyDown( event ) {
     const { keyCode } = event;
-    if ( keyCode === 38 || keyCode === 87 ) { this.keys[0] = true; }
-    if ( keyCode === 40 || keyCode === 83 ) { this.keys[1] = true; }
-    if ( keyCode === 37 || keyCode === 65 ) { this.keys[2] = true; }
-    if ( keyCode === 39 || keyCode === 68 ) { this.keys[3] = true; }
+    if ( keyCode === 38 || keyCode === 87 ) {
+      event.preventDefault();
+      this.keys[0] = true;
+    }
+
+    if ( keyCode === 40 || keyCode === 83 ) {
+      event.preventDefault();
+      this.keys[1] = true;
+    }
+
+    if ( keyCode === 37 || keyCode === 65 ) {
+      event.preventDefault();
+      this.keys[2] = true;
+    }
+
+    if ( keyCode === 39 || keyCode === 68 ) {
+      event.preventDefault();
+      this.keys[3] = true;
+    }
+
     if ( keyCode === 32 ) { this.keys[4] = true; }
     if ( keyCode === 16 ) { this.keys[5] = true; }
   }
 
   onKeyUp( event ) {
     const { keyCode } = event;
-    if ( keyCode === 38 || keyCode === 87 ) { this.keys[0] = false; }
-    if ( keyCode === 40 || keyCode === 83 ) { this.keys[1] = false; }
-    if ( keyCode === 37 || keyCode === 65 ) { this.keys[2] = false; }
-    if ( keyCode === 39 || keyCode === 68 ) { this.keys[3] = false; }
+    if ( keyCode === 38 || keyCode === 87 ) {
+      event.preventDefault();
+      this.keys[0] = false;
+    }
+
+    if ( keyCode === 40 || keyCode === 83 ) {
+      event.preventDefault();
+      this.keys[1] = false;
+    }
+
+    if ( keyCode === 37 || keyCode === 65 ) {
+      event.preventDefault();
+      this.keys[2] = false;
+    }
+
+    if ( keyCode === 39 || keyCode === 68 ) {
+      event.preventDefault();
+      this.keys[3] = false;
+    }
+
     if ( keyCode === 32 ) { this.keys[4] = false; }
     if ( keyCode === 16 ) { this.keys[5] = false; }
   }
