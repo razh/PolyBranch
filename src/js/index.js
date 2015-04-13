@@ -35,7 +35,6 @@ const $level = $( '#hud #level span' );
 
 // Initialize.
 const game = new Game( $( '.container' )[0] );
-$loading.fadeOut( DURATION, () => $loading.hide() );
 
 $start.on( 'click', () => {
   if( !playing ) {
