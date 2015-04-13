@@ -21,11 +21,15 @@ export default function create() {
     composer.setSize( renderer.domElement.width, renderer.domElement.height );
   });
 
-  return function render( scene, camera ) {
+  function render( scene, camera ) {
     composer.reset();
     composer.render( scene, camera );
     composer.pass( fxaaPass );
     composer.pass( rgbSplitPass );
     composer.toScreen();
-  };
+  }
+
+  render.renderer = renderer;
+
+  return render;
 }
