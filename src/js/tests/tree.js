@@ -4,14 +4,17 @@ import { PI2 } from './../math';
 import Tree from './../tree/tree';
 import renderer from './renderer';
 
+import OrbitControls from './../../../vendor/controls/OrbitControls';
+
 function render3d() {
   const render = renderer();
   const scene = new THREE.Scene();
 
   const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight );
-  const cameraRadius = 12;
-  camera.position.set( 0, 0, cameraRadius );
+  camera.position.set( 0, 0, 12 );
   scene.add( camera );
+
+  const controls = new THREE.OrbitControls( camera, renderer.domElement );
 
   scene.add( new THREE.AmbientLight( '#222' ) );
 
@@ -33,12 +36,8 @@ function render3d() {
     // Rotate camera instead of mesh to prevent problems with SkeletonHelper
     // transforms.
     const time = Date.now() * 1e-3;
-    camera.position.x = cameraRadius * Math.cos( time );
-    camera.position.z = cameraRadius * Math.sin( time );
-    camera.lookAt( mesh.position );
 
     const cos = Math.cos( time );
-
     const t = 0.5 * ( cos + 1 );
     // Length of vector ( 1, 1, 1 ).
     const length = t * Math.sqrt( 3 );
