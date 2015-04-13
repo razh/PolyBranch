@@ -62,14 +62,22 @@ export default class Cylinder {
     for ( let i = 0, il = this.geometry.vertices.length; i < il; i++ ) {
       const vertex = this.geometry.vertices[i];
       const staticVertex = this.staticGeometry.vertices[i];
-      const noise = fbm(
-        staticVertex.x,
-        staticVertex.y,
-        staticVertex.z + t,
-        {
-          period: 2
+
+      let { x, y, z } = staticVertex;
+      // Hack to connect cylinders.
+      // Match y at ends.
+      if ( Math.abs( y ) === this.length / 2 ) {
+        y = 0;
+
+        // Flip x.
+        if ( x > 0 ) {
+          x = -x;
         }
-      );
+      }
+
+      const noise = fbm( x, y, z + t, {
+        period: 2
+      });
 
       const radius = this.radius * ( this.scale * noise + 1 ) / ( this.scale + 1 );
       const angle = this.angles[i];

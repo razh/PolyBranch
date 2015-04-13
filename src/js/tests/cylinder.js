@@ -7,7 +7,7 @@ import renderer from './renderer';
 import OrbitControls from './../../../vendor/controls/OrbitControls';
 
 export default function() {
-  const clearColor = 0xaa8888;
+  const clearColor = 0xffffff;
 
   const render = renderer();
   render.renderer.setClearColor( clearColor );
@@ -18,7 +18,7 @@ export default function() {
   camera.position.set( 0, 0, 32 );
   scene.add( camera );
 
-  scene.fog = new THREE.FogExp2( clearColor, 0.005 );
+  scene.fog = new THREE.FogExp2( clearColor, 0.02 );
 
   const controls = new THREE.OrbitControls( camera, renderer.domElement );
 
@@ -28,8 +28,18 @@ export default function() {
     side: THREE.DoubleSide,
     shading: THREE.FlatShading
   });
-  const mesh = new THREE.Mesh( cylinder.geometry, material );
-  scene.add( mesh );
+
+  const cylinderMesh = new THREE.Mesh( cylinder.geometry, material );
+  scene.add( cylinderMesh );
+  cylinderMesh.rotation.x = Math.PI / 2;
+
+  const material2 = material.clone();
+  material2.color.setHex( 0x0000ff );
+  const cylinderMesh2 = new THREE.Mesh( cylinder.geometry, material2 );
+  scene.add( cylinderMesh2 );
+  cylinderMesh2.position.z += cylinder.length;
+  cylinderMesh2.rotation.x = -Math.PI / 2;
+  cylinderMesh2.rotation.y = Math.PI;
 
   const treeMaterial = new THREE.MeshPhongMaterial({
     skinning: true,
@@ -40,19 +50,17 @@ export default function() {
 
   const tree = new Tree( treeMaterial );
   const treeMesh = tree.mesh;
-  treeMesh.rotation.x = -Math.PI / 2;
-  treeMesh.position.z += cylinder.radius * 0.75;
+  treeMesh.position.y -= cylinder.radius * 0.75;
   treeMesh.scale.setLength( 0.75 );
   scene.add( treeMesh );
 
   const light = new THREE.PointLight( '#acf' );
-  scene.add( light );
+  camera.add( light );
 
-  scene.add( new THREE.AmbientLight( clearColor ) );
+  scene.add( new THREE.AmbientLight( '#655' ) );
 
   function animate() {
     cylinder.update();
-    light.position.copy( camera.position );
 
     const time = Date.now() * 1e-3;
     const cos = Math.cos( time );
