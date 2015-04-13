@@ -1,7 +1,9 @@
+import random from 'lodash/number/random';
 import remove from 'lodash/array/remove';
 import times from 'lodash/utility/times';
 import THREE from 'three';
 import CANNON from 'cannon';
+import { Tone } from 'tone';
 import { EventEmitter } from 'events';
 
 import renderer from './tests/renderer';
@@ -62,6 +64,54 @@ const branches = [
   16,
   18
 ];
+
+const synths = (() => {
+  const synths = [];
+
+  const gain = Tone.context.createGain();
+  const eq = new Tone.EQ( 4, -20, 0 ).toMaster();
+  gain.connect( eq );
+
+  times( 3, () => {
+    const synth = new Tone.FMSynth();
+
+    synth.connect( gain );
+    synth.volume.value = -10;
+
+    synth.carrier.oscillator.type = 'sine';
+    synth.modulator.oscillator.type = 'sine';
+
+    synths.push( synth );
+  });
+
+  return synths;
+})();
+
+const playBell = (() => {
+  const notes = [
+    'C3',
+    'D3',
+    'E3',
+    'G3',
+    'A3'
+  ];
+
+  const synth = new Tone.MonoSynth();
+  synth.toMaster();
+  synth.volume.value = -15;
+
+  synth.oscillator.type = 'sine';
+  synth.envelope.attack = 0.001;
+
+  return () => {
+    const note = notes[ random( notes.length - 1 ) ];
+    synth.triggerAttackRelease( note, '4n' );
+  };
+})();
+
+function playEnd() {
+  synths[0].triggerAttackRelease( 'F#3', '2n' );
+}
 
 function convertVertices( threeVertices ) {
   const vertices = [];
@@ -256,6 +306,7 @@ export default class Game extends EventEmitter {
         this.score += 100;
         tree.passed = true;
         this.emit( 'score', this.score );
+        playBell();
       }
     });
 
@@ -381,6 +432,7 @@ export default class Game extends EventEmitter {
       this.emit( 'end', this.score );
       this.isGameOver = true;
       this.running = false;
+      playEnd();
     }
   }
 
