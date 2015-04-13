@@ -47,7 +47,7 @@ function jsTask(name, src, dest) {
       }, production ? {} : watchify.args));
 
     if (!production) {
-      bundler = watchify(bundler);
+      bundler = watchify(bundler, { delay: argv.delay });
     } else {
       bundler.plugin(bundleCollapser);
     }
