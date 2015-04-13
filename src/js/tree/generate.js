@@ -26,7 +26,7 @@ class BinaryTreeNode {
     const left  = this.left  && this.left.toObject3D( width, depth );
     const right = this.right && this.right.toObject3D( width, depth );
 
-    const trapezoid = new TrapezoidalPrism( width, random( 1.5, 3 ), depth );
+    const trapezoid = new TrapezoidalPrism( width, random( 2, 3.5 ), depth );
     const triangle  = new EquilateralTriangularPrism( width, depth );
 
     trapezoid.add( triangle );

@@ -11,7 +11,7 @@ import {
 const vector = new THREE.Vector3();
 
 export default class Tree {
-  constructor() {
+  constructor( material ) {
     const geometry = new THREE.Geometry();
     geometry.bones = [];
 
@@ -31,7 +31,7 @@ export default class Tree {
     geometry.computeVertexNormals();
     geometry.computeBoundingSphere();
 
-    const material = new THREE.MeshPhongMaterial({
+    material = material || new THREE.MeshPhongMaterial({
       skinning: true,
       shading: THREE.FlatShading
     });
