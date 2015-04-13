@@ -1,4 +1,5 @@
 import { Tone } from 'tone';
+import dat from 'dat-gui';
 
 let octave = 4;
 
@@ -187,15 +188,54 @@ function songE() {
 function songF() {
   Tone.Transport.bpm.value = 90;
 
+  const gui = new dat.GUI();
+
+  function addGUI( source, { filterEnvelope } = {} ) {
+    gui.add( source.envelope, 'attack', 0.001, 2 );
+    gui.add( source.envelope, 'decay', 0.0, 2 );
+    gui.add( source.envelope, 'sustain', 0, 1 );
+    gui.add( source.envelope, 'release', 0.001, 4 );
+    if ( filterEnvelope ) {
+      gui.add( source.filterEnvelope, 'attack', 0.001, 2 );
+      gui.add( source.filterEnvelope, 'decay', 0.0, 2 );
+      gui.add( source.filterEnvelope, 'sustain', 0, 1 );
+      gui.add( source.filterEnvelope, 'release', 0.001, 4 );
+    }
+  }
+
+  const kick2 = new Tone.NoiseSynth({
+    filter: {
+      type: 'lowpass',
+      frequency: 0,
+      rolloff: -24,
+      Q: 3.7,
+      gain: 0
+    },
+    envelope: {
+      attack: 0.024,
+      decay: 0.111,
+      sustain: 0,
+      release: 0.22
+    },
+    filterEnvelope: {
+      min: 200.20,
+      max: 3510.98,
+      exponent: 2,
+      attack: 0.002,
+      decay: 0.02,
+      sustain: 0.02,
+      release: 0.013
+    }
+  }).toMaster();
+  kick2.volume.value = 4;
+  kick2.noise.type = 'brown';
+
+  addGUI( kick2, { filterEnvelope: true } );
+
   const kick = new Tone.MonoSynth({
     portamento: 0.00,
     oscillator: {
-      type: 'square'
-    },
-    filter: {
-      Q: 2,
-      type: 'bandpass',
-      rolloff: -12
+      type: 'sine'
     },
     envelope: {
       attack: 0.01,
@@ -207,27 +247,104 @@ function songF() {
       attack: 0.01,
       decay: 0.2,
       sustain: 1,
-      release: 0.4,
+      release: 0.2,
       min: 3000,
       max: 30
     }
   });
+
+  const kick3 = new Tone.FMSynth({
+    carrier: {
+      oscillator: {
+        type: 'sine'
+      },
+      envelope: {
+        attack: 0.01,
+        decay: 0.5,
+        sustain: 0.1,
+        release: 0.1
+      }
+    },
+    modulator: {
+      oscillator: {
+        type: 'sine'
+      },
+      envelope: {
+        attack: 0.01,
+        decay: 0.1,
+        sustain: 0.005,
+        release: 0.2
+      }
+    }
+  });
+
+  // addGUI( kick3.carrier );
+  // addGUI( kick3.modulator );
+
+  const snare = new Tone.NoiseSynth({
+    filter: {
+      type: 'highpass',
+      frequency: 0,
+      rolloff: -12,
+      Q: 3.7,
+      gain: 0
+    },
+    envelope: {
+      attack: 0.01,
+      decay: 0.111,
+      sustain: 0,
+      release: 0.22
+    },
+    filterEnvelope: {
+      min: 819.20,
+      max: 3510.98,
+      exponent: 2,
+      attack: 0.002,
+      decay: 0.02,
+      sustain: 0.02,
+      release: 0.013
+    }
+  });
+  snare.noise.type = 'brown';
 
   const eq = new Tone.EQ( 4, -20, 0 );
 
   const compress = new Tone.Compressor({
     threshold: -30,
     ratio: 6,
-    attack: 0.01,
+    attack: 0.001,
     release: 0.01
   }).toMaster();
 
   kick.connect( eq );
+  // kick2.connect( eq );
+  kick3.connect( eq );
+  snare.connect( eq );
   eq.connect( compress );
 
-  document.addEventListener( 'keydown', () =>
-    kick.triggerAttackRelease( 'C2', '8n' )
-  );
+  document.addEventListener( 'keydown', event => {
+    const { keyCode } = event;
+    // 1.
+    if ( keyCode === 49 ) {
+      kick2.triggerAttackRelease( '8n' );
+    }
+
+    // 2.
+    if ( keyCode === 50 ) {
+      kick3.triggerAttackRelease( 'C2', '4n' );
+    }
+
+    // 3.
+    if ( keyCode === 51 ) {
+      kick.triggerAttackRelease( 'C2', '8n' );
+    }
+
+    // 4.
+    if ( keyCode === 52 ) {
+      snare.triggerAttackRelease( '4n' );
+    }
+
+  });
 }
 
 const songs = {
