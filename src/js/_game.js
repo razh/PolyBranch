@@ -5,6 +5,7 @@ import THREE from 'three';
 import CANNON from 'cannon';
 import { Tone } from 'tone';
 import { EventEmitter } from 'events';
+import { songG as playBell } from './audio/songs';
 
 import renderer from './tests/renderer';
 import Cylinder from './cylinder/cylinder';
@@ -85,28 +86,6 @@ const synths = (() => {
   });
 
   return synths;
-})();
-
-const playBell = (() => {
-  const notes = [
-    'C3',
-    'D3',
-    'E3',
-    'G3',
-    'A3'
-  ];
-
-  const synth = new Tone.MonoSynth();
-  synth.toMaster();
-  synth.volume.value = -15;
-
-  synth.oscillator.type = 'sine';
-  synth.envelope.attack = 0.001;
-
-  return () => {
-    const note = notes[ random( notes.length - 1 ) ];
-    synth.triggerAttackRelease( note, '4n' );
-  };
 })();
 
 function playEnd() {

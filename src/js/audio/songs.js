@@ -347,13 +347,58 @@ function songF() {
   });
 }
 
+export const songG = (() => {
+  const synth = new Tone.PolySynth( 3, Tone.FMSynth );
+  const lfo = new Tone.LFO( 8, 0.1, 1 );
+  lfo.oscillator.type = 'square';
+  lfo.start();
+
+  const gain = Tone.context.createGain();
+  const eq = new Tone.EQ( 4, -20, 0 ).toMaster();
+  gain.connect( eq );
+
+  synth.connect( gain );
+  lfo.connect( gain.gain );
+
+  synth.volume.value = -10;
+
+  synth.voices.forEach( voice => {
+    voice.carrier.oscillator.type = 'square';
+    voice.modulator.oscillator.type = 'sine';
+  });
+
+  const A = [ 'A5', 'C5', 'E5' ];
+  const E = [ 'E4', 'G4', 'B5' ];
+  const F = [ 'F4', 'A5', 'C5' ];
+  const C = [ 'C4', 'E4', 'G4' ];
+  const G = [ 'G4', 'B5', 'D5' ];
+  const B = [ 'B5', 'D5', 'F5' ];
+
+  const chords = [
+    A, E, F, C, F, C, F, G,
+    A, F, G, C, A, F, C, G,
+    A, B, F, G, E, C, F, G
+  ];
+
+  let index = 0;
+  return () => {
+    const chord = chords[ index ];
+    synth.triggerAttackRelease( chord[0], '4t' );
+    synth.triggerAttackRelease( chord[1], '4t', '+16n' );
+    synth.triggerAttackRelease( chord[2], '4t', '+8n' );
+    index++;
+    index %= chords.length;
+  };
+})();
+
 const songs = {
   songA,
   songB,
   songC,
   songD,
   songE,
-  songF
+  songF,
+  songG
 };
 
 export default songs;
