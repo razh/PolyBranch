@@ -1,3 +1,4 @@
+import includes from 'lodash/collection/includes';
 import random from 'lodash/number/random';
 import remove from 'lodash/array/remove';
 import times from 'lodash/utility/times';
@@ -120,16 +121,17 @@ function convertFaces( threeFaces ) {
 
 
 function enableTree( tree ) {
-  tree.mesh.visible = true;
+  const { mesh, body } = tree;
   tree.passed = false;
-  const { body } = tree;
+  mesh.visible = true;
   body.collisionFilterGroup = 1;
   body.collisionFilterMask = 1;
 }
 
 function disableTree( tree ) {
-  tree.mesh.visible = false;
-  const { body } = tree;
+  const { mesh, body } = tree;
+  tree.passed = false;
+  mesh.visible = false;
   body.collisionFilterGroup = 0;
   body.collisionFilterMask = 0;
 }
@@ -262,11 +264,13 @@ export default class Game extends EventEmitter {
   toggle() {
     if ( !this.running ) {
       this.running = true;
+      this.clock.start();
       this.emit( 'start', true );
       this.reset();
       this.tick();
     } else {
       this.running = false;
+      this.clock.stop();
     }
   }
 
@@ -290,13 +294,14 @@ export default class Game extends EventEmitter {
     });
 
     // Remove trees.
-    this.activeTrees.map( tree => {
+    const removedTrees = this.activeTrees.map( tree => {
       if ( this.camera.position.z < tree.mesh.position.z ) {
         disableTree( tree );
-        remove( this.activeTrees, tree );
         this.inactiveTrees.push( tree );
+        return tree;
       }
-    });
+    }).filter( Boolean );
+    remove( this.activeTrees, tree => includes( removedTrees, tree ) );
 
     if ( !this.activeTrees.length ) {
       this.emit( 'level' );
@@ -304,7 +309,8 @@ export default class Game extends EventEmitter {
       this.changeLevel();
     }
 
-    const delta = this.clock.getDelta();
+    // Limit to 100 ms.
+    const delta = Math.min( this.clock.getDelta(), 0.1 );
     this.world.step( this.dt, delta );
 
     const dv = 120 * delta;
@@ -350,10 +356,7 @@ export default class Game extends EventEmitter {
     this.player.rotation.x += -rot * this.playerVelocity.y * delta;
 
     this.playerBody.position.copy( this.player.position );
-    this.camera.position.z = this.player.position.z + 4;
-    vec3.copy( this.player.position ).multiplyScalar( 0.25 );
-    vec3.z = this.player.position.z;
-    this.camera.lookAt( vec3 );
+    this.updateCamera();
 
     // Length of vector ( 1, 1, 1 ).
     const sqrt3 = Math.sqrt( 3 );
@@ -400,7 +403,6 @@ export default class Game extends EventEmitter {
     for ( let i = scores.length - 1; i >= 0; i-- ) {
       if ( this.score > scores[i] && this.level < ( i + 1 ) ) {
         this.level = i + 1;
-        this.changeLevel();
         break;
       }
     }
@@ -422,17 +424,18 @@ export default class Game extends EventEmitter {
   reset() {
     this.player.position.set( 0, -1, 0 );
     this.playerVelocity.set( 0, 0, 0 );
-    this.playerBody.position.set( 0, 0, 0 );
+    this.playerBody.position.copy( this.player.position );
     this.speed = speeds[0];
     this.isGameOver = false;
     this.score = 0;
     this.level = 1;
 
-    this.cylinderMeshes.map( mesh => mesh.position.z = 0 );
-    this.cylinderMeshes[1].position.z = -this.cylinder.length;
-    this.cylinderMeshes[2].position.z = -2 * this.cylinder.length;
+    this.cylinderMeshes.map( ( mesh, index ) =>
+      mesh.position.z = -this.cylinder.length * index
+    );
 
     this.changeLevel();
+    this.updateCamera();
   }
 
   changeLevel() {
@@ -451,14 +454,23 @@ export default class Game extends EventEmitter {
       const { mesh, body } = tree;
       const angle = Math.random() * 2 * Math.PI;
       mesh.rotation.z = angle + Math.PI / 2;
-      mesh.position.x = 0.75 * this.cylinder.radius * Math.cos( angle );
-      mesh.position.y = 0.75 * this.cylinder.radius * Math.sin( angle );
-      mesh.position.z = this.player.position.z - this.cylinder.length -
-        ( i * this.cylinder.length / branchCount );
+      mesh.position.set(
+        0.75 * this.cylinder.radius * Math.cos( angle ),
+        0.75 * this.cylinder.radius * Math.sin( angle ),
+        this.player.position.z - this.cylinder.length -
+        ( i * this.cylinder.length / branchCount )
+      );
 
       body.position.copy( mesh.position );
       body.quaternion.copy( mesh.quaternion );
     }
+  }
+
+  updateCamera() {
+    this.camera.position.z = this.player.position.z + 4;
+    vec3.copy( this.player.position ).multiplyScalar( 0.25 );
+    vec3.z = this.player.position.z;
+    this.camera.lookAt( vec3 );
   }
 
   /*
