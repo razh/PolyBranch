@@ -8,19 +8,13 @@ import createIcon from './icon';
 
 createIcon();
 
-const DURATION      = 300;
-const LONG_DURATION = 600;
-
-let firstPlaythrough = true;
-let playing = false;
+const DURATION = 300;
 
 const $mainMenu        = $( '#main-menu' );
 const $start           = $( '#main-menu #start' );
 const $mainMenuContent = $( '#main-menu .content' );
 
 const $flash     = $( '#flash' );
-const $loading   = $( '#loading' );
-const $arrowKeys = $( '#arrow-keys' );
 
 const $gameOverMenu      = $( '#game-over-menu' );
 const $gameOverContent   = $( '#game-over-menu .content' );
@@ -37,20 +31,16 @@ const $level = $( '#hud #level span' );
 const game = new Game( $( '.container' )[0] );
 
 $start.on( 'click', () => {
-  if( !playing ) {
+  if( !game.running ) {
     game.emit( 'start', false );
-    playing = true;
   }
 });
 
 $retry.on( 'click', () => {
-  if( !playing ) {
+  if( !game.running ) {
     newGame();
-    playing = true;
   }
 });
-
-$( document ).on( 'keydown', () => $arrowKeys.fadeOut( DURATION ) );
 
 game.on( 'start', fromProcessing => {
   if ( !fromProcessing ) {
@@ -58,19 +48,12 @@ game.on( 'start', fromProcessing => {
   }
 
   $mainMenuContent.fadeOut( DURATION, () => {
-    if ( firstPlaythrough ) {
-      firstPlaythrough = false;
-      $arrowKeys.fadeIn();
-    }
-
     $hud.fadeIn( DURATION);
     $mainMenu.fadeOut( DURATION );
   });
 });
 
 function newGame() {
-  game.reset();
-
   $score.text( 0 );
   $level.text( 1 );
 
@@ -88,7 +71,7 @@ game.on( 'score', score => $score.text( score.toLocaleString() ) );
 game.on( 'level', () => $level.text( parseInt( $level.text() ) + 1 ) );
 
 game.on( 'end', score => {
-  playing = false;
+  game.running = false;
 
   $hud.hide();
   $flash.show()
