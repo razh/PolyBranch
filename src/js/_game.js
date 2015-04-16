@@ -67,31 +67,20 @@ const branches = [
   18
 ];
 
-const synths = (() => {
-  const synths = [];
-
+const playEnd = (() => {
   const gain = Tone.context.createGain();
   const eq = new Tone.EQ( 4, -20, 0 ).toMaster();
+
+  const synth = new Tone.FMSynth();
+  synth.carrier.oscillator.type = 'sine';
+  synth.modulator.oscillator.type = 'sawtooth';
+  synth.volume.value = -10;
+
+  synth.connect( gain );
   gain.connect( eq );
 
-  times( 3, () => {
-    const synth = new Tone.FMSynth();
-
-    synth.connect( gain );
-    synth.volume.value = -10;
-
-    synth.carrier.oscillator.type = 'sine';
-    synth.modulator.oscillator.type = 'sine';
-
-    synths.push( synth );
-  });
-
-  return synths;
+  return () => synth.triggerAttackRelease( 'F#3', '2n' );
 })();
-
-function playEnd() {
-  synths[0].triggerAttackRelease( 'F#3', '2n' );
-}
 
 function convertVertices( threeVertices ) {
   const vertices = [];

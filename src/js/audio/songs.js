@@ -349,23 +349,22 @@ function songF() {
 
 export const songG = (() => {
   const synth = new Tone.PolySynth( 3, Tone.FMSynth );
+  synth.volume.value = -10;
+  synth.voices.forEach( voice => {
+    voice.carrier.oscillator.type = 'square';
+    voice.modulator.oscillator.type = 'sine';
+  });
+
   const lfo = new Tone.LFO( 8, 0.1, 1 );
   lfo.oscillator.type = 'square';
   lfo.start();
 
   const gain = Tone.context.createGain();
   const eq = new Tone.EQ( 4, -20, 0 ).toMaster();
-  gain.connect( eq );
 
   synth.connect( gain );
   lfo.connect( gain.gain );
-
-  synth.volume.value = -10;
-
-  synth.voices.forEach( voice => {
-    voice.carrier.oscillator.type = 'square';
-    voice.modulator.oscillator.type = 'sine';
-  });
+  gain.connect( eq );
 
   const A = [ 'A5', 'C5', 'E5' ];
   const E = [ 'E4', 'G4', 'B5' ];
