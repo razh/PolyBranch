@@ -349,7 +349,7 @@ function songF() {
 
 export const songG = (() => {
   const synth = new Tone.PolySynth( 3, Tone.FMSynth );
-  synth.volume.value = -10;
+  synth.volume.value = -15;
   synth.voices.forEach( voice => {
     voice.carrier.oscillator.type = 'square';
     voice.modulator.oscillator.type = 'sine';

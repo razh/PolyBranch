@@ -82,6 +82,11 @@ const playEnd = (() => {
   return () => synth.triggerAttackRelease( 'F#3', '2n' );
 })();
 
+const noise = new Tone.Noise();
+noise.type = 'brown';
+noise.volume.value = -40;
+noise.toMaster();
+
 function convertVertices( threeVertices ) {
   const vertices = [];
 
@@ -257,9 +262,11 @@ export default class Game extends EventEmitter {
       this.emit( 'start', true );
       this.reset();
       this.tick();
+      noise.start();
     } else {
       this.running = false;
       this.clock.stop();
+      noise.stop();
     }
   }
 
@@ -402,6 +409,7 @@ export default class Game extends EventEmitter {
       this.emit( 'end', this.score );
       this.isGameOver = true;
       this.running = false;
+      noise.stop();
       playEnd();
     }
   }
